@@ -1,3 +1,6 @@
 [submodule "nucleo_f767zi-irsend/IRLib2"]
-	path = nucleo_f767zi-irsend/IRLib2
+	path = nucleo_f767zi-irsend/libs/IRLib2
 	url = https://github.com/cyborg5/IRLib2
+[submodule "nucleo_f767zi-irsend/libs/Arduino-IRremote"]
+	path = nucleo_f767zi-irsend/libs/Arduino-IRremote
+	url = https://github.com/Arduino-IRremote/Arduino-IRremote
