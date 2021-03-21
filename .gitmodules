@@ -4,3 +4,9 @@
 [submodule "nucleo_f767zi-irsend/libs/Arduino-IRremote"]
 	path = nucleo_f767zi-irsend/libs/Arduino-IRremote
 	url = https://github.com/Arduino-IRremote/Arduino-IRremote
+[submodule "nucleo_f767zi-irsend/libs/IRMP"]
+	path = nucleo_f767zi-irsend/libs/IRMP
+	url = https://github.com/ukw100/IRMP
+[submodule "nucleo_f767zi-irsend/libs/IRremoteESP8266"]
+	path = nucleo_f767zi-irsend/libs/IRremoteESP8266
+	url = https://github.com/crankyoldgit/IRremoteESP8266
