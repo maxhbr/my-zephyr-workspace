@@ -5,6 +5,7 @@
  */
 
 #include <zephyr.h>
+#include "irsnd.h"
 
 void main(void)
 {
