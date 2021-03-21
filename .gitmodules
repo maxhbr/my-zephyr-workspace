@@ -1,0 +1,3 @@
+[submodule "nucleo_f767zi-irsend/IRLib2"]
+	path = nucleo_f767zi-irsend/IRLib2
+	url = https://github.com/cyborg5/IRLib2
