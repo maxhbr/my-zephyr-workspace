@@ -10,3 +10,6 @@
 [submodule "nucleo_f767zi-irsend/libs/IRremoteESP8266"]
 	path = projects/nucleo_f767zi-irsend/libs/IRremoteESP8266
 	url = https://github.com/crankyoldgit/IRremoteESP8266
+[submodule "scratchpad/MCUDev_DevEBox_STM32H7XX_M/mcauser-MCUDEV_DEVEBOX_H7XX_M"]
+	path = scratchpad/MCUDev_DevEBox_STM32H7XX_M/mcauser-MCUDEV_DEVEBOX_H7XX_M
+	url = https://github.com/mcauser/MCUDEV_DEVEBOX_H7XX_M
