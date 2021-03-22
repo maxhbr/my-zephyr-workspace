@@ -13,3 +13,6 @@
 [submodule "scratchpad/MCUDev_DevEBox_STM32H7XX_M/mcauser-MCUDEV_DEVEBOX_H7XX_M"]
 	path = scratchpad/MCUDev_DevEBox_STM32H7XX_M/mcauser-MCUDEV_DEVEBOX_H7XX_M
 	url = https://github.com/mcauser/MCUDEV_DEVEBOX_H7XX_M
+[submodule "scratchpad/MCUDev_DevEBox_STM32F407VGT6/mcauser-MCUDEV_DEVEBOX_F407VGT6"]
+	path = scratchpad/MCUDev_DevEBox_STM32F407VGT6/mcauser-MCUDEV_DEVEBOX_F407VGT6
+	url = https://github.com/mcauser/MCUDEV_DEVEBOX_F407VGT6
