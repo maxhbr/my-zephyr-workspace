@@ -1,0 +1,8 @@
+# MCUdex DevEBox STM32H7XX_M board configuration
+
+# Copyright (c) 2021 Maximilian Huber
+# SPDX-License-Identifier: Apache-2.0
+
+config BOARD_DEVEBOX_STM32H7XX_M
+	bool "MCUdex DevEBox STM32H7XX_M Development Board"
+	depends on SOC_STM32H750XX
