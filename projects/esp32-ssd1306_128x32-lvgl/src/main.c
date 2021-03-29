@@ -6,6 +6,7 @@
 
 #include <device.h>
 #include <drivers/display.h>
+#include <drivers/sensor.h>
 #include <lvgl.h>
 #include <stdio.h>
 #include <string.h>
@@ -15,6 +16,79 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
 
+static const char *now_str(void)
+{
+	static char buf[16]; /* ...HH:MM:SS.MMM */
+	uint32_t now = k_uptime_get_32();
+	unsigned int ms = now % MSEC_PER_SEC;
+	unsigned int s;
+	unsigned int min;
+	unsigned int h;
+
+	now /= MSEC_PER_SEC;
+	s = now % 60U;
+	now /= 60U;
+	min = now % 60U;
+	now /= 60U;
+	h = now;
+
+	snprintf(buf, sizeof(buf), "%u:%02u:%02u.%03u",
+		 h, min, s, ms);
+	return buf;
+}
+
+static int process_mpu6050(const struct device *dev)
+{
+	struct sensor_value temperature;
+	struct sensor_value accel[3];
+	struct sensor_value gyro[3];
+	int rc = sensor_sample_fetch(dev);
+
+	if (rc == 0) {
+		rc = sensor_channel_get(dev, SENSOR_CHAN_ACCEL_XYZ,
+					accel);
+	}
+	if (rc == 0) {
+		rc = sensor_channel_get(dev, SENSOR_CHAN_GYRO_XYZ,
+					gyro);
+	}
+	if (rc == 0) {
+		rc = sensor_channel_get(dev, SENSOR_CHAN_AMBIENT_TEMP,
+					&temperature);
+	}
+	if (rc == 0) {
+		printf("[%s]:%g Cel\n"
+		       "  accel %f %f %f m/s/s\n"
+		       "  gyro  %f %f %f rad/s\n",
+		       now_str(),
+		       sensor_value_to_double(&temperature),
+		       sensor_value_to_double(&accel[0]),
+		       sensor_value_to_double(&accel[1]),
+		       sensor_value_to_double(&accel[2]),
+		       sensor_value_to_double(&gyro[0]),
+		       sensor_value_to_double(&gyro[1]),
+		       sensor_value_to_double(&gyro[2]));
+	} else {
+		printf("sample fetch/get failed: %d\n", rc);
+	}
+
+	return rc;
+}
+
+static struct sensor_trigger trigger;
+
+static void handle_mpu6050_drdy(const struct device *dev,
+				struct sensor_trigger *trig)
+{
+	int rc = process_mpu6050(dev);
+
+	if (rc != 0) {
+		printf("cancelling trigger due to failure: %d\n", rc);
+		(void)sensor_trigger_set(dev, trig, NULL);
+		return;
+	}
+}
+
 void main(void)
 {
 	uint32_t count = 0U;
@@ -22,28 +96,35 @@ void main(void)
 	const struct device *display_dev;
 	lv_obj_t *hello_world_label;
 	lv_obj_t *count_label;
+	const char *const label = DT_LABEL(DT_INST(0, invensense_mpu6050));
+	const struct device *mpu6050 = device_get_binding(label);
+
+	trigger = (struct sensor_trigger) {
+		.type = SENSOR_TRIG_DATA_READY,
+		.chan = SENSOR_CHAN_ALL,
+	};
+	if (sensor_trigger_set(mpu6050, &trigger,
+			       handle_mpu6050_drdy) < 0) {
+		printf("Cannot configure trigger\n");
+		return;
+	};
+	printk("Configured for triggered sampling.\n");
 
 	display_dev = device_get_binding(CONFIG_LVGL_DISPLAY_DEV_NAME);
+
+	while (!IS_ENABLED(CONFIG_MPU6050_TRIGGER)) {
+		int rc = process_mpu6050(mpu6050);
+
+		if (rc != 0) {
+			break;
+		}
+		k_sleep(K_SECONDS(2));
+	}
 
 	if (display_dev == NULL) {
 		LOG_ERR("device not found.  Aborting test.");
 		return;
 	}
-
-	/* LOG_ERR("Starting i2c scanner...\n"); */
-	/* for (u8_t i = 4; i <= 0x77; i++) { */
-	/* 	struct i2c_msg msgs[1]; */
-	/* 	u8_t dst; */
-
-	/* 	/\* Send the address to read from *\/ */
-	/* 	msgs[0].buf = &dst; */
-	/* 	msgs[0].len = 0; */
-	/* 	msgs[0].flags = I2C_MSG_WRITE | I2C_MSG_STOP; */
-
-	/* 	if (i2c_transfer(display_dev, &msgs[0], 1, i) == 0) { */
-	/* 		LOG_ERR("0x%2x FOUND\n", i); */
-	/* 	} */
-	/* } */
 
 	if (IS_ENABLED(CONFIG_LVGL_POINTER_KSCAN)) {
 		lv_obj_t *hello_world_button;

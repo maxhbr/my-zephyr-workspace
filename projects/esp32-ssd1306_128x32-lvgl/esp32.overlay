@@ -15,4 +15,11 @@
 		com-invdir;
 		prechargep = <0x22>;
 	};
+	mpu6050@68 {
+		compatible = "invensense,mpu6050";
+		reg = <0x68>;
+		status = "okay";
+		label = "MPU6050";
+		int-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
+	};
 };
