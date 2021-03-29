@@ -11,7 +11,7 @@
 #include <string.h>
 #include <zephyr.h>
 
-#define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
+#define LOG_LEVEL LOG_LEVEL_INFO
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
 
@@ -29,6 +29,21 @@ void main(void)
 		LOG_ERR("device not found.  Aborting test.");
 		return;
 	}
+
+	/* LOG_ERR("Starting i2c scanner...\n"); */
+	/* for (u8_t i = 4; i <= 0x77; i++) { */
+	/* 	struct i2c_msg msgs[1]; */
+	/* 	u8_t dst; */
+
+	/* 	/\* Send the address to read from *\/ */
+	/* 	msgs[0].buf = &dst; */
+	/* 	msgs[0].len = 0; */
+	/* 	msgs[0].flags = I2C_MSG_WRITE | I2C_MSG_STOP; */
+
+	/* 	if (i2c_transfer(display_dev, &msgs[0], 1, i) == 0) { */
+	/* 		LOG_ERR("0x%2x FOUND\n", i); */
+	/* 	} */
+	/* } */
 
 	if (IS_ENABLED(CONFIG_LVGL_POINTER_KSCAN)) {
 		lv_obj_t *hello_world_button;
