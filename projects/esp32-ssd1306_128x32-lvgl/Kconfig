@@ -6,6 +6,9 @@
 config I2C
 	default y
 
+config SPI
+	default y
+
 config SSD1306
         default y
 

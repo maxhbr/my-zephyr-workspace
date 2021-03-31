@@ -20,6 +20,6 @@
 		reg = <0x68>;
 		status = "okay";
 		label = "MPU6050";
-		int-gpios = <&gpio0 17 GPIO_ACTIVE_HIGH>;
+		int-gpios = <&gpio0 2 GPIO_ACTIVE_HIGH>;
 	};
 };

@@ -16,3 +16,6 @@
 [submodule "scratchpad/MCUDev_DevEBox_STM32F407VGT6/mcauser-MCUDEV_DEVEBOX_F407VGT6"]
 	path = scratchpad/MCUDev_DevEBox_STM32F407VGT6/mcauser-MCUDEV_DEVEBOX_F407VGT6
 	url = https://github.com/mcauser/MCUDEV_DEVEBOX_F407VGT6
+[submodule "scratchpad/Bodmer-TFT_eSPI"]
+	path = scratchpad/Bodmer-TFT_eSPI
+	url = https://github.com/Bodmer/TFT_eSPI
