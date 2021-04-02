@@ -19,3 +19,9 @@
 [submodule "scratchpad/Bodmer-TFT_eSPI"]
 	path = scratchpad/Bodmer-TFT_eSPI
 	url = https://github.com/Bodmer/TFT_eSPI
+[submodule "platformio/platformio-platform-ststm32"]
+	path = platformio/platformio-platform-ststm32
+	url = https://github.com/platformio/platform-ststm32
+[submodule "platformio/platformio-platform-espressif32"]
+	path = platformio/platformio-platform-espressif32
+	url = https://github.com/platformio/platform-espressif32

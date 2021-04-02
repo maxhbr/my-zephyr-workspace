@@ -23,7 +23,6 @@ void main(void)
 	lv_obj_t *hello_world_label;
 	lv_obj_t *count_label;
 
-	LOG_ERR(CONFIG_LVGL_DISPLAY_DEV_NAME);
 	display_dev = device_get_binding(CONFIG_LVGL_DISPLAY_DEV_NAME);
 
 	if (display_dev == NULL) {
