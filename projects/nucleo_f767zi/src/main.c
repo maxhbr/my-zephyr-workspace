@@ -11,97 +11,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <zephyr.h>
+#include <sys/printk.h>
+#include <console/console.h>
 
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
 
-static const char *now_str(void)
-{
-	static char buf[16]; /* ...HH:MM:SS.MMM */
-	uint32_t now = k_uptime_get_32();
-	unsigned int ms = now % MSEC_PER_SEC;
-	unsigned int s;
-	unsigned int min;
-	unsigned int h;
-
-	now /= MSEC_PER_SEC;
-	s = now % 60U;
-	now /= 60U;
-	min = now % 60U;
-	now /= 60U;
-	h = now;
-
-	snprintf(buf, sizeof(buf), "%u:%02u:%02u.%03u",
-		 h, min, s, ms);
-	return buf;
-}
-
-static int process_mpu6050(const struct device *dev, lv_obj_t *label)
-{
-	struct sensor_value temperature;
-	struct sensor_value accel[3];
-	struct sensor_value gyro[3];
-	char gyro_str[40] = {0};
-	int rc = sensor_sample_fetch(dev);
-
-	if (rc == 0) {
-		rc = sensor_channel_get(dev, SENSOR_CHAN_ACCEL_XYZ,
-					accel);
-	}
-	if (rc == 0) {
-		rc = sensor_channel_get(dev, SENSOR_CHAN_GYRO_XYZ,
-					gyro);
-	}
-	if (rc == 0) {
-		rc = sensor_channel_get(dev, SENSOR_CHAN_AMBIENT_TEMP,
-					&temperature);
-	}
-	if (rc == 0) {
-		printf("[%s]:%g Cel\n"
-		       "  accel %f %f %f m/s/s\n"
-		       "  gyro  %f %f %f rad/s\n",
-		       now_str(),
-		       sensor_value_to_double(&temperature),
-		       sensor_value_to_double(&accel[0]),
-		       sensor_value_to_double(&accel[1]),
-		       sensor_value_to_double(&accel[2]),
-		       sensor_value_to_double(&gyro[0]),
-		       sensor_value_to_double(&gyro[1]),
-		       sensor_value_to_double(&gyro[2]));
-		if (label) {
-			sprintf(gyro_str, "%f\n%f\n%f",
-					sensor_value_to_double(&gyro[0]),
-					sensor_value_to_double(&gyro[1]),
-					sensor_value_to_double(&gyro[2])
-					);
-			lv_label_set_text(label, gyro_str);
-		}
-	} else {
-		printf("sample fetch/get failed: %d\n", rc);
-	}
-
-	return rc;
-}
-
-#ifdef CONFIG_MPU6050_TRIGGER
-static struct sensor_trigger trigger;
-
-static void handle_mpu6050_drdy(const struct device *dev,
-				struct sensor_trigger *trig)
-{
-	int rc = process_mpu6050(dev, NULL);
-
-	if (rc != 0) {
-		printf("cancelling trigger due to failure: %d\n", rc);
-		(void)sensor_trigger_set(dev, trig, NULL);
-		return;
-	}
-}
-#endif /* CONFIG_MPU6050_TRIGGER */
-
-static
-const struct device *setup_mpu6050() {
+static const struct device *setup_mpu6050() {
 	const char *const label = DT_LABEL(DT_INST(0, invensense_mpu6050));
 	const struct device *mpu6050 = device_get_binding(label);
 
@@ -110,20 +27,57 @@ const struct device *setup_mpu6050() {
 		return mpu6050;
 	}
 
-#ifdef CONFIG_MPU6050_TRIGGER
-	trigger = (struct sensor_trigger) {
-		.type = SENSOR_TRIG_DATA_READY,
-		.chan = SENSOR_CHAN_ALL,
-	};
-	if (sensor_trigger_set(mpu6050, &trigger,
-			       handle_mpu6050_drdy) < 0) {
-		printf("Cannot configure trigger\n");
-		return;
-	};
-	printk("Configured for triggered sampling.\n");
-#endif
-
 	return mpu6050;
+}
+
+static int wait_for_stall(const struct device *dev, lv_obj_t *label) {
+	struct sensor_value gyro[3];
+
+	double cyclic_buffer[12] = {
+		1,1,1,
+		1,1,1,
+		1,1,1,
+		1,1,1,
+	};
+	int idx = 0;
+
+	int rc = sensor_sample_fetch(dev);
+	if (rc != 0) {
+		return rc;
+	}
+
+	while (1) {
+		rc = sensor_channel_get(dev, SENSOR_CHAN_GYRO_XYZ,
+								gyro);
+		if (rc == 0) {
+			return rc;
+		}
+		if (label) {
+			sprintf(gyro_str, "%f\n%f\n%f",
+					sensor_value_to_double(&gyro[0]),
+					sensor_value_to_double(&gyro[1]),
+					sensor_value_to_double(&gyro[2])
+					);
+			lv_label_set_text(label, gyro_str);
+			lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
+		}
+
+		cyclic_buffer[idx] = sensor_value_to_double(&gyro[0]);
+		cyclic_buffer[idx + 1] = sensor_value_to_double(&gyro[1]);
+		cyclic_buffer[idx + 2] = sensor_value_to_double(&gyro[2]);
+
+		double sum = 0;
+		for(i=0; i<12; i++) {
+			sum += abs(a[i]);
+		}
+
+		if (sum < 0.2) {
+			return rc;
+		}
+
+		idx = (idx + 3) % 12;
+		k_sleep(K_MSEC(10));
+	}
 }
 
 void main(void)
@@ -133,6 +87,8 @@ void main(void)
 	const struct device *display_dev;
 	lv_obj_t *label;
 	lv_obj_t *count_label;
+
+	console_getline_init();
 
 
 	const struct device *mpu6050 = setup_mpu6050();
@@ -159,9 +115,6 @@ void main(void)
 		label = lv_label_create(lv_scr_act(), NULL);
 	}
 
-	lv_label_set_text(label, "Hello world!");
-	lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
-
     count_label = lv_label_create(lv_scr_act(), NULL);
     lv_obj_align(count_label, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
 
@@ -169,16 +122,20 @@ void main(void)
 	display_blanking_off(display_dev);
 
 	while (1) {
-		if ((count % 10) == 0U) {
+		if ((count % 1) == 0U) {
 			sprintf(count_str, "%d", count/10U);
 			lv_label_set_text(count_label, count_str);
 			if (!IS_ENABLED(CONFIG_MPU6050_TRIGGER)) {
-				int rc = process_mpu6050(mpu6050, label);
+				int rc = wait_for_stall(mpu6050, label);
 
 				if (rc != 0) {
 					break;
 				}
 			}
+
+			/* char *s = console_getline(); */
+			/* printk("line: %s\n", s); */
+			/* printk("last char was: 0x%x\n", s[strlen(s) - 1]); */
 		}
 		lv_task_handler();
 		k_sleep(K_MSEC(10));
