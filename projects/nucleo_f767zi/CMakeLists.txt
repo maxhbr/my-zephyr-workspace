@@ -14,5 +14,5 @@ find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(my_f767zi)
 
 
-FILE(GLOB app_sources src/*.c)
+FILE(GLOB app_sources src/*.cpp)
 target_sources(app PRIVATE ${app_sources})

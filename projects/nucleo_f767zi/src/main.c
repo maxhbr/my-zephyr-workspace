@@ -4,6 +4,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
+#include <stdlib.h>
 #include <device.h>
 #include <drivers/display.h>
 #include <drivers/sensor.h>
@@ -31,6 +32,7 @@ static const struct device *setup_mpu6050() {
 }
 
 static int wait_for_stall(const struct device *dev, lv_obj_t *label) {
+	char gyro_str[40] = {0};
 	struct sensor_value gyro[3];
 
 	double cyclic_buffer[12] = {
@@ -40,16 +42,22 @@ static int wait_for_stall(const struct device *dev, lv_obj_t *label) {
 		1,1,1,
 	};
 	int idx = 0;
+	int count = 0;
+	int rc = 0;
 
-	int rc = sensor_sample_fetch(dev);
+	printk("wait for stall...\n");
+
 	if (rc != 0) {
 		return rc;
 	}
 
 	while (1) {
-		rc = sensor_channel_get(dev, SENSOR_CHAN_GYRO_XYZ,
-								gyro);
+		rc = sensor_sample_fetch(dev);
 		if (rc == 0) {
+			rc = sensor_channel_get(dev, SENSOR_CHAN_GYRO_XYZ,
+									gyro);
+		}
+		if (rc != 0) {
 			return rc;
 		}
 		if (label) {
@@ -58,6 +66,7 @@ static int wait_for_stall(const struct device *dev, lv_obj_t *label) {
 					sensor_value_to_double(&gyro[1]),
 					sensor_value_to_double(&gyro[2])
 					);
+			printk("... %s\n", gyro_str);
 			lv_label_set_text(label, gyro_str);
 			lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
 		}
@@ -67,23 +76,33 @@ static int wait_for_stall(const struct device *dev, lv_obj_t *label) {
 		cyclic_buffer[idx + 2] = sensor_value_to_double(&gyro[2]);
 
 		double sum = 0;
-		for(i=0; i<12; i++) {
-			sum += abs(a[i]);
+		for(int i=0; i<12; i++) {
+			if (cyclic_buffer[i] > 0) {
+				sum += cyclic_buffer[i];
+			} else {
+				sum -= cyclic_buffer[i];
+			}
 		}
 
-		if (sum < 0.2) {
+		printk("... sum = %f ...\n", sum);
+		if (sum < 0.4) {
+			printk("... stalled\n");
 			return rc;
+		}
+
+		if (count > 100) {
+			printk("... failed\n");
+			return -1;
 		}
 
 		idx = (idx + 3) % 12;
 		k_sleep(K_MSEC(10));
+		++count;
 	}
 }
 
 void main(void)
 {
-	uint32_t count = 0U;
-	char count_str[11] = {0};
 	const struct device *display_dev;
 	lv_obj_t *label;
 	lv_obj_t *count_label;
@@ -122,23 +141,20 @@ void main(void)
 	display_blanking_off(display_dev);
 
 	while (1) {
-		if ((count % 1) == 0U) {
-			sprintf(count_str, "%d", count/10U);
-			lv_label_set_text(count_label, count_str);
-			if (!IS_ENABLED(CONFIG_MPU6050_TRIGGER)) {
-				int rc = wait_for_stall(mpu6050, label);
+		char *s = console_getline();
+		printk("<-- %s\n", s);
 
-				if (rc != 0) {
-					break;
-				}
+		if (s[0] == 's') {
+			int rc = wait_for_stall(mpu6050, label);
+			if (rc != 0) {
+				printk("!!! returned rc=%i", rc);
 			}
-
-			/* char *s = console_getline(); */
-			/* printk("line: %s\n", s); */
-			/* printk("last char was: 0x%x\n", s[strlen(s) - 1]); */
 		}
+
+		int x = atoi(s);
+
+
 		lv_task_handler();
 		k_sleep(K_MSEC(10));
-		++count;
 	}
 }
