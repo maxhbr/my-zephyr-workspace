@@ -5,13 +5,13 @@
 set(BOARD_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 
-set(BOARD my_f767zi)
+set(BOARD nucleo_h745zi_q_m7)
 set(SHIELD adafruit_2_8_tft_touch_v2)
 
 cmake_minimum_required(VERSION 3.13.1)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(my_f767zi)
+project(h745zi_q)
 
 
 FILE(GLOB app_sources src/*.cpp)

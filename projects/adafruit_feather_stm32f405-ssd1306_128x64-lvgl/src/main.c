@@ -11,7 +11,7 @@
 #include <string.h>
 #include <zephyr.h>
 
-#define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
+#define LOG_LEVEL LOG_LEVEL_DEBUG
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
 
@@ -40,18 +40,26 @@ void main(void)
 	} else {
 		hello_world_label = lv_label_create(lv_scr_act(), NULL);
 	}
+	LOG_ERR("1");
 
 	lv_label_set_text(hello_world_label, "Hello world!");
+	LOG_ERR("2");
 	lv_obj_align(hello_world_label, NULL, LV_ALIGN_CENTER, 0, 0);
+	LOG_ERR("3");
 
 	count_label = lv_label_create(lv_scr_act(), NULL);
+	LOG_ERR("4");
 	lv_obj_align(count_label, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+	LOG_ERR("5");
 
 	lv_task_handler();
+	LOG_ERR("6");
 	display_blanking_off(display_dev);
+	LOG_ERR("7");
 
 	while (1) {
 		if ((count % 100) == 0U) {
+			LOG_ERR("%d", count/100U);
 			sprintf(count_str, "%d", count/100U);
 			lv_label_set_text(count_label, count_str);
 		}
