@@ -6,7 +6,7 @@ set(BOARD_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 
 set(BOARD nucleo_h745zi_q_m7)
-set(SHIELD adafruit_2_8_tft_touch_v2)
+set(SHIELD ssd1306_128x64)
 
 cmake_minimum_required(VERSION 3.13.1)
 
