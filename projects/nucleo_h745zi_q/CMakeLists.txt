@@ -2,7 +2,7 @@
 
 # Re-direct the directory where the 'boards' directory is found from
 # $ZEPHYR_BASE to this directory.
-set(BOARD_ROOT ${CMAKE_CURRENT_LIST_DIR})
+# set(BOARD_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 
 set(BOARD nucleo_h745zi_q_m7)

@@ -43,6 +43,13 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
 
+/* size of stack area used by each thread */
+#define STACKSIZE 8192
+/* scheduling priority used by each thread */
+#define PRIORITY 7
+/* delay between updates (in ms) */
+#define SLEEPTIME 500
+
 class GyroWaiter {
 	const struct device *mpu6050;
 	lv_obj_t *label;
@@ -120,6 +127,7 @@ public:
 	};
 };
 
+K_SEM_DEFINE(threadRail_sem, 1, 1);
 class Rail {
 	int pos = 0;
 	int target_pos = 0;
@@ -127,16 +135,11 @@ class Rail {
 	int sleep_msec = 1;
 	bool current_to_left = true;
 
-	void print_to_label() {
-		char pos_str[11] = {0};
-		sprintf(pos_str, "%i --> %i", target_pos, pos);
-		lv_label_set_text(label, pos_str);
-		lv_task_handler();
-	}
 	void flip_dir() {
 		current_to_left = !current_to_left;
 	};
 	void step(bool to_left) {
+		k_sem_take(&threadRail_sem, K_FOREVER);
 		if (to_left != current_to_left) {
 			flip_dir();
 		}
@@ -145,12 +148,15 @@ class Rail {
 		} else {
 			--pos;
 		}
+		k_sem_give(&threadRail_sem);
 		print_to_label();
 	};
 public:
 	Rail() {
 		label = lv_label_create(lv_scr_act(), NULL);
 		lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+
+
 		print_to_label();
 	};
 	int go(int relative) {
@@ -158,14 +164,9 @@ public:
 		print_to_label();
 		return pos;
 	};
-	void run() {
-		while (1) {
-			if (pos != target_pos) {
-				run_to_target();
-			}
-			// k_sleep(K_MSEC(sleep_msec));
-		}
-	};
+	bool is_in_pos() {
+		return pos == target_pos;
+	}
 	void run_to_target() {
 		while(1) {
 			if (pos < target_pos) {
@@ -178,7 +179,64 @@ public:
 			k_sleep(K_MSEC(sleep_msec));
 		}
 	}
+	void print_to_label() {
+		char pos_str[21] = {0};
+		sprintf(pos_str, "%i > %i", target_pos, pos);
+		lv_label_set_text(label, pos_str);
+		lv_task_handler();
+	}
 };
+
+K_THREAD_STACK_DEFINE(threadRail_stack_area, STACKSIZE);
+static struct k_thread threadRail_data;
+void threadRail(void *railV, void *dummy2, void *dummy3)
+{
+	ARG_UNUSED(dummy2);
+	ARG_UNUSED(dummy3);
+	Rail* rail = static_cast<Rail *>(railV);
+
+	while (1) {
+		if (! rail->is_in_pos()) {
+			rail->run_to_target();
+		}
+		rail->print_to_label();
+		k_sleep(K_MSEC(10));
+		// k_sleep(K_MSEC(sleep_msec));
+	}
+}
+
+#define CONSOLE_HELP  \
+    "help\n"  \
+    "----\n"  \
+    "   s -> do a single shot\n" \
+    "   $int -> move relative\n"
+K_THREAD_STACK_DEFINE(threadConsole_stack_area, STACKSIZE);
+static struct k_thread threadConsole_data;
+void threadConsole(void *railV, void *waiterV, void *dummy3) {
+	ARG_UNUSED(dummy3);
+	Rail* rail = static_cast<Rail *>(railV);
+	GyroWaiter* waiter = static_cast<GyroWaiter *>(waiterV);
+	int rc = 0;
+
+	printk(CONSOLE_HELP);
+	while (1) {
+		char *s = console_getline();
+		printk("<-- %s\n", s);
+
+		if (s[0] == 's') {
+			rc = waiter->wait();
+			if (rc != 0) {
+				printk("!!! returned rc=%i", rc);
+			}
+		} else {
+			int x = atoi(s);
+			rail->go(x);
+		}
+
+		lv_task_handler();
+		k_sleep(K_MSEC(10));
+	}
+}
 
 void display_init() {
 	const struct device *display_dev;
@@ -191,41 +249,27 @@ void display_init() {
 	display_blanking_off(display_dev);
 }
 
-#define CONSOLE_HELP  \
-    "help\n"  \
-    "----\n"  \
-    "   s -> do a single shot\n" \
-    "   $int -> move relative\n"
-
 
 void main(void) {
-	int rc = 0;
 
 	display_init();
 	console_getline_init();
 	GyroWaiter waiter;
 	Rail rail;
-
 	lv_task_handler();
 
-	printk(CONSOLE_HELP);
-	while (1) {
-		char *s = console_getline();
-		printk("<-- %s\n", s);
+	k_tid_t my_tid_console = k_thread_create(&threadConsole_data, threadConsole_stack_area,
+			K_THREAD_STACK_SIZEOF(threadConsole_stack_area),
+			threadConsole, &rail, &waiter, NULL,
+			PRIORITY, 0, K_NO_WAIT);
+	k_thread_name_set(&threadConsole_data, "thread_r");
 
-		if (s[0] == 's') {
-			waiter.wait();
-			if (rc != 0) {
-				printk("!!! returned rc=%i", rc);
-			}
-		} else if (s[0] == 'r') {
-			rail.run_to_target();
-		} else {
-			int x = atoi(s);
-			rail.go(x);
-		}
+	k_tid_t my_tid_rail = k_thread_create(&threadRail_data, threadRail_stack_area,
+			K_THREAD_STACK_SIZEOF(threadRail_stack_area),
+			threadRail, &rail, NULL, NULL,
+			PRIORITY, 0, K_NO_WAIT);
+	k_thread_name_set(&threadRail_data, "thread_r");
 
-		lv_task_handler();
-		k_sleep(K_MSEC(10));
-	}
+	k_thread_start(&threadConsole_data);
+	k_thread_start(&threadRail_data);
 }
