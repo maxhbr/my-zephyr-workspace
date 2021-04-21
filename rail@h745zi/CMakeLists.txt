@@ -11,7 +11,7 @@ set(SHIELD ssd1306_128x64)
 cmake_minimum_required(VERSION 3.13.1)
 
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
-project(h745zi_q)
+project(rail@h745zi)
 
 
 FILE(GLOB app_sources src/*.cpp)

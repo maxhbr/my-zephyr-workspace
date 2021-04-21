@@ -4,11 +4,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-/*
- * This is mainly a parse test that verifies that Zephyr header files
- * compile in C++ mode.
- */
-
 #include <string.h>
 #include <zephyr.h>
 #include <zephyr/types.h>
@@ -39,6 +34,8 @@
 // #include <usb/class/usb_hid.h>
 // #include <drivers/watchdog.h>
 
+#include "GyroWaiter.h"
+
 #define LOG_LEVEL CONFIG_LOG_DEFAULT_LEVEL
 #include <logging/log.h>
 LOG_MODULE_REGISTER(app);
@@ -51,88 +48,6 @@ LOG_MODULE_REGISTER(app);
 #define SLEEPTIME 500
 
 K_SEM_DEFINE(threadRail_sem, 1, 1);
-
-class GyroWaiter {
-	const struct device *mpu6050;
-	lv_obj_t *label;
-	int num_of_samples = 4;
-	double boundary = 0.1 * num_of_samples;
-	int sleep_msec = 50;
-public:
-	GyroWaiter() {
-		label = lv_label_create(lv_scr_act(), NULL);
-		lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
-
-		const char *const mpu_label = DT_LABEL(DT_INST(0, invensense_mpu6050));
-		mpu6050 = device_get_binding(mpu_label);
-	};
-	int wait() {
-		char gyro_str[40] = {0};
-		struct sensor_value gyro[3];
-
-		double cyclic_buffer[num_of_samples * 3] = {
-			1,1,1
-		};
-		int idx = 1;
-		int count = 0;
-		int bail_count = 40;
-		int rc = 0;
-
-		printk("wait for semathor...\n");
-		k_sem_take(&threadRail_sem, K_FOREVER);
-		printk("wait for stall...\n");
-		while (1) {
-			rc = sensor_sample_fetch(mpu6050);
-			if (rc == 0) {
-				rc = sensor_channel_get(mpu6050, SENSOR_CHAN_GYRO_XYZ, gyro);
-			}
-			if (rc != 0) {
-				break;
-			}
-			sprintf(gyro_str, "%f\n%f\n%f",
-					sensor_value_to_double(&gyro[0]),
-					sensor_value_to_double(&gyro[1]),
-					sensor_value_to_double(&gyro[2])
-					);
-			printk("... %s\n", gyro_str);
-			if (label) {
-				lv_label_set_text(label, gyro_str);
-				lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
-			}
-
-			cyclic_buffer[idx * 3] = sensor_value_to_double(&gyro[0]);
-			cyclic_buffer[idx * 3 + 1] = sensor_value_to_double(&gyro[1]);
-			cyclic_buffer[idx * 3 + 2] = sensor_value_to_double(&gyro[2]);
-
-			double sum = 0;
-			for(int i=0; i < num_of_samples * 3; i++) {
-				if (cyclic_buffer[i] > 0) {
-					sum += cyclic_buffer[i];
-				} else {
-					sum -= cyclic_buffer[i];
-				}
-			}
-
-			printk("... %i:sum = %f ...\n", count, sum);
-			if (sum < boundary) {
-				printk("... stalled\n");
-				break;
-			}
-
-			if (count > bail_count) {
-				printk("... bail count exceeded: %i > %i\n", count, bail_count);
-				rc = -1;
-				break;
-			}
-
-			idx = (++idx) % num_of_samples;
-			k_sleep(K_MSEC(sleep_msec));
-			++count;
-		}
-		k_sem_give(&threadRail_sem);
-		return rc;
-	};
-};
 
 #define LED0_NODE DT_ALIAS(led0)
 #define LED0	DT_GPIO_LABEL(LED0_NODE, gpios)
@@ -322,7 +237,7 @@ void main(void) {
 
 	display_init();
 	console_getline_init();
-	GyroWaiter waiter;
+	GyroWaiter waiter(&threadRail_sem);
 	Rail rail;
 
 	k_tid_t my_tid_console = k_thread_create(&threadConsole_data, threadConsole_stack_area,
