@@ -27,11 +27,11 @@
 #define LED1_FLAGS DT_GPIO_FLAGS(LED1_NODE, gpios)
 
 #define PULSE_NODE DT_ALIAS(pulse)
-#define PULSE DT_GPIO_LABEL(PULSE_NODE, gpios)
+#define PULSE_LABEL DT_GPIO_LABEL(PULSE_NODE, gpios)
 #define PULSE_PIN DT_GPIO_PIN(PULSE_NODE, gpios)
 #define PULSE_FLAGS DT_GPIO_FLAGS(PULSE_NODE, gpios)
 #define DIR_NODE DT_ALIAS(dir)
-#define DIR DT_GPIO_LABEL(DIR_NODE, gpios)
+#define DIR_LABEL DT_GPIO_LABEL(DIR_NODE, gpios)
 #define DIR_PIN DT_GPIO_PIN(DIR_NODE, gpios)
 #define DIR_FLAGS DT_GPIO_FLAGS(DIR_NODE, gpios)
 
@@ -56,17 +56,15 @@ public:
     }
   };
   void set(bool value) {
-    if (value != cur_value) {
-      cur_value = value;
+    LOG_MODULE_DECLARE(rail);
+    if (ret == 0) {
+      if (value != cur_value) {
+        cur_value = value;
 
-      LOG_MODULE_DECLARE(rail);
-      if (ret == 0) {
         gpio_pin_set(dev, pin, value);
-
-        LOG_DBG("%s", value ? "true" : "false");
-      } else {
-        LOG_WRN("Do nothing, since ret=%i", ret);
       }
+    } else {
+      LOG_WRN("Do nothing, since ret=%i", ret);
     }
   };
 };
@@ -80,6 +78,18 @@ public:
   };
 };
 
+class PULSE : public GPIO {
+public:
+  PULSE(const char *label, int _pin, int flags) : GPIO(label, _pin, flags){};
+  void pulse() {
+    LOG_MODULE_DECLARE(rail);
+    set(true);
+    k_msleep(1);
+    set(false);
+    k_msleep(1);
+  };
+};
+
 class Rail {
   struct k_sem *threadRail_sem;
   int pos = 0;
@@ -90,8 +100,8 @@ class Rail {
 
   LED led0 = LED(LED0_LABEL, LED0_PIN, LED0_FLAGS);
   LED led1 = LED(LED1_LABEL, LED1_PIN, LED1_FLAGS);
-  /* const struct device* pulse_dev = device_get_binding(PULSE); */
-  /* const struct device* dir_dev = device_get_binding(DIR); */
+  PULSE pulse = PULSE(PULSE_LABEL, PULSE_PIN, PULSE_FLAGS);
+  GPIO dir = GPIO(DIR_LABEL, DIR_PIN, DIR_FLAGS);
 
   void set_dir(bool to_left);
   void step(bool to_left);

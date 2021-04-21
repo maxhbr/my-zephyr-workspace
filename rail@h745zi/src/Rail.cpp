@@ -11,24 +11,23 @@ void Rail::set_dir(bool to_left) {
     led1.set(true);
   }
   if (to_left != current_to_left) {
-    // gpio_pin_set(dir_dev, DIR_PIN, to_left);
+    dir.set(to_left);
     current_to_left = to_left;
   }
 }
 void Rail::step(bool to_left) {
   k_sem_take(threadRail_sem, K_FOREVER);
   set_dir(to_left);
-  // gpio_pin_set(pulse_dev, PULSE_PIN, true);
-  // k_sleep(K_MSEC(10));
-  // gpio_pin_set(pulse_dev, PULSE_PIN, false);
-  // k_sleep(K_MSEC(10));
+  pulse.pulse();
   if (to_left) {
     ++pos;
   } else {
     --pos;
   }
   k_sem_give(threadRail_sem);
-  print_to_label();
+  if (pos % 100 == 0) {
+    print_to_label();
+  }
 };
 bool Rail::is_in_pos() { return pos == target_pos; }
 void Rail::run_to_target() {
@@ -43,7 +42,6 @@ void Rail::run_to_target() {
       led1.set(false);
       break;
     }
-    k_sleep(K_MSEC(sleep_msec));
   }
 }
 void Rail::print_to_label() {
@@ -58,25 +56,20 @@ Rail::Rail(struct k_sem *_threadRail_sem) {
   label = lv_label_create(lv_scr_act(), NULL);
   lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
 
-  // led0.set(true);
-  // led1.set(true);
-
-  // if (pulse_dev != NULL) {
-  // 	int ret = gpio_pin_configure(pulse_dev, PULSE_PIN, GPIO_OUTPUT_ACTIVE |
-  // PULSE_FLAGS);
-  // }
-  // if (dir_dev != NULL) {
-  // 	int ret = gpio_pin_configure(dir_dev, DIR_PIN, GPIO_OUTPUT_ACTIVE |
-  // DIR_FLAGS);
-  // }
+  go(1);
+  go(-1);
 };
 void Rail::loop() {
+  int counter = 0;
   while (1) {
     if (!is_in_pos()) {
       run_to_target();
+      print_to_label();
     }
-    print_to_label();
-    k_sleep(K_MSEC(sleep_msec));
+    if((++counter)%100==0) {
+      print_to_label();
+    }
+    k_sleep(K_MSEC(1));
   }
 }
 int Rail::go(int relative) {
