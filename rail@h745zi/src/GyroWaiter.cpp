@@ -23,7 +23,7 @@
 GyroWaiter::GyroWaiter(struct k_sem *_threadRail_sem) {
   threadRail_sem = _threadRail_sem;
   label = lv_label_create(lv_scr_act(), NULL);
-  lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
 
   const char *const mpu_label = DT_LABEL(DT_INST(0, invensense_mpu6050));
   mpu6050 = device_get_binding(mpu_label);
@@ -54,7 +54,7 @@ int GyroWaiter::wait() {
     printk("... %s\n", gyro_str);
     if (label) {
       lv_label_set_text(label, gyro_str);
-      lv_obj_align(label, NULL, LV_ALIGN_CENTER, 0, 0);
+      lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
     }
 
     cyclic_buffer[idx * 3] = sensor_value_to_double(&gyro[0]);

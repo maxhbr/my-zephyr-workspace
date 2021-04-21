@@ -1,6 +1,8 @@
 #ifndef RAIL_H
 #define RAIL_H
 
+#include <device.h>
+#include <init.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -8,27 +10,10 @@
 #include <zephyr.h>
 #include <zephyr/types.h>
 
-#include <device.h>
-#include <init.h>
-#include <kernel.h>
-/* #include <net/buf.h> */
-#include <sys/byteorder.h>
-#include <sys/crc.h>
-#include <sys/printk.h>
-
-#include <console/console.h>
-
 #include <lvgl.h>
 
 #include <drivers/display.h>
 #include <drivers/gpio.h>
-#include <drivers/sensor.h>
-// #include <drivers/led_strip.h>
-// #include <drivers/spi.h>
-// #include <drivers/uart.h>
-// #include <usb/usb_device.h>
-// #include <usb/class/usb_hid.h>
-// #include <drivers/watchdog.h>
 
 #include <logging/log.h>
 
@@ -52,11 +37,12 @@
 
 class GPIO {
   const struct device *dev;
-  int pin;
-  int ret;
+  int pin = -1;
+  int ret = -1;
+  bool cur_value = false;
 
 public:
-  GPIO(char *label, int _pin, int flags) {
+  GPIO(const char *label, int _pin, int flags) {
     LOG_MODULE_DECLARE(rail);
     pin = _pin;
     dev = device_get_binding(label);
@@ -70,20 +56,24 @@ public:
     }
   };
   void set(bool value) {
-    LOG_MODULE_DECLARE(rail);
-    if (ret == 0) {
-      gpio_pin_set(dev, pin, value);
+    if (value != cur_value) {
+      cur_value = value;
 
-      LOG_INF("%s", value ? "true" : "false");
-    } else {
-      LOG_WRN("Do nothing, since ret=%i", ret);
+      LOG_MODULE_DECLARE(rail);
+      if (ret == 0) {
+        gpio_pin_set(dev, pin, value);
+
+        LOG_DBG("%s", value ? "true" : "false");
+      } else {
+        LOG_WRN("Do nothing, since ret=%i", ret);
+      }
     }
   };
 };
 
 class LED : public GPIO {
 public:
-  LED(char *label, int _pin, int flags) : GPIO(label, _pin, flags) {
+  LED(const char *label, int _pin, int flags) : GPIO(label, _pin, flags) {
     set(true);
     k_msleep(100);
     set(false);
@@ -98,8 +88,8 @@ class Rail {
   int sleep_msec = 1;
   bool current_to_left = true;
 
-  LED *led0;
-  LED *led1;
+  LED led0 = LED(LED0_LABEL, LED0_PIN, LED0_FLAGS);
+  LED led1 = LED(LED1_LABEL, LED1_PIN, LED1_FLAGS);
   /* const struct device* pulse_dev = device_get_binding(PULSE); */
   /* const struct device* dir_dev = device_get_binding(DIR); */
 

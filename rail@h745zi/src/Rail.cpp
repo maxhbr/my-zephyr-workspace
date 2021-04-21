@@ -4,11 +4,11 @@ LOG_MODULE_REGISTER(rail);
 
 void Rail::set_dir(bool to_left) {
   if (to_left) {
-    led0->set(true);
-    led1->set(false);
+    led0.set(true);
+    led1.set(false);
   } else {
-    led0->set(false);
-    led1->set(true);
+    led0.set(false);
+    led1.set(true);
   }
   if (to_left != current_to_left) {
     // gpio_pin_set(dir_dev, DIR_PIN, to_left);
@@ -39,8 +39,8 @@ void Rail::run_to_target() {
       step(false);
     } else {
       LOG_INF("...reached");
-      led0->set(false);
-      led1->set(false);
+      led0.set(false);
+      led1.set(false);
       break;
     }
     k_sleep(K_MSEC(sleep_msec));
@@ -54,10 +54,12 @@ void Rail::print_to_label() {
 }
 Rail::Rail(struct k_sem *_threadRail_sem) {
   threadRail_sem = _threadRail_sem;
-  LED _led0(LED0_LABEL, LED0_PIN, LED0_FLAGS);
-  led0 = &_led0;
-  LED _led1(LED1_LABEL, LED1_PIN, LED1_FLAGS);
-  led1 = &_led1;
+
+  label = lv_label_create(lv_scr_act(), NULL);
+  lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+
+  // led0.set(true);
+  // led1.set(true);
 
   // if (pulse_dev != NULL) {
   // 	int ret = gpio_pin_configure(pulse_dev, PULSE_PIN, GPIO_OUTPUT_ACTIVE |
@@ -67,9 +69,6 @@ Rail::Rail(struct k_sem *_threadRail_sem) {
   // 	int ret = gpio_pin_configure(dir_dev, DIR_PIN, GPIO_OUTPUT_ACTIVE |
   // DIR_FLAGS);
   // }
-
-  label = lv_label_create(lv_scr_act(), NULL);
-  lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
 };
 void Rail::loop() {
   while (1) {
