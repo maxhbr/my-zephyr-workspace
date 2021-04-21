@@ -31,7 +31,7 @@
 
 #include <drivers/display.h>
 #include <drivers/sensor.h>
-// #include <drivers/gpio.h>
+#include <drivers/gpio.h>
 // #include <drivers/led_strip.h>
 // #include <drivers/spi.h>
 // #include <drivers/uart.h>
@@ -50,13 +50,14 @@ LOG_MODULE_REGISTER(app);
 /* delay between updates (in ms) */
 #define SLEEPTIME 500
 
+K_SEM_DEFINE(threadRail_sem, 1, 1);
+
 class GyroWaiter {
 	const struct device *mpu6050;
 	lv_obj_t *label;
 	int num_of_samples = 4;
 	double boundary = 0.1 * num_of_samples;
 	int sleep_msec = 50;
-	int bail_count = 40;
 public:
 	GyroWaiter() {
 		label = lv_label_create(lv_scr_act(), NULL);
@@ -74,8 +75,11 @@ public:
 		};
 		int idx = 1;
 		int count = 0;
+		int bail_count = 40;
 		int rc = 0;
 
+		printk("wait for semathor...\n");
+		k_sem_take(&threadRail_sem, K_FOREVER);
 		printk("wait for stall...\n");
 		while (1) {
 			rc = sensor_sample_fetch(mpu6050);
@@ -83,7 +87,7 @@ public:
 				rc = sensor_channel_get(mpu6050, SENSOR_CHAN_GYRO_XYZ, gyro);
 			}
 			if (rc != 0) {
-				return rc;
+				break;
 			}
 			sprintf(gyro_str, "%f\n%f\n%f",
 					sensor_value_to_double(&gyro[0]),
@@ -109,40 +113,79 @@ public:
 				}
 			}
 
-			printk("... sum = %f ...\n", sum);
+			printk("... %i:sum = %f ...\n", count, sum);
 			if (sum < boundary) {
 				printk("... stalled\n");
-				return rc;
+				break;
 			}
 
 			if (count > bail_count) {
-				printk("... failed\n");
-				return -1;
+				printk("... bail count exceeded: %i > %i\n", count, bail_count);
+				rc = -1;
+				break;
 			}
 
 			idx = (++idx) % num_of_samples;
 			k_sleep(K_MSEC(sleep_msec));
 			++count;
 		}
+		k_sem_give(&threadRail_sem);
+		return rc;
 	};
 };
 
-K_SEM_DEFINE(threadRail_sem, 1, 1);
+#define LED0_NODE DT_ALIAS(led0)
+#define LED0	DT_GPIO_LABEL(LED0_NODE, gpios)
+#define LED0_PIN	DT_GPIO_PIN(LED0_NODE, gpios)
+#define LED0_FLAGS	DT_GPIO_FLAGS(LED0_NODE, gpios)
+#define LED1_NODE DT_ALIAS(led1)
+#define LED1	DT_GPIO_LABEL(LED1_NODE, gpios)
+#define LED1_PIN	DT_GPIO_PIN(LED1_NODE, gpios)
+#define LED1_FLAGS	DT_GPIO_FLAGS(LED1_NODE, gpios)
+
+#define PULSE_NODE DT_ALIAS(pulse)
+#define PULSE	DT_GPIO_LABEL(PULSE_NODE, gpios)
+#define PULSE_PIN	DT_GPIO_PIN(PULSE_NODE, gpios)
+#define PULSE_FLAGS	DT_GPIO_FLAGS(PULSE_NODE, gpios)
+#define DIR_NODE DT_ALIAS(dir)
+#define DIR	DT_GPIO_LABEL(DIR_NODE, gpios)
+#define DIR_PIN	DT_GPIO_PIN(DIR_NODE, gpios)
+#define DIR_FLAGS	DT_GPIO_FLAGS(DIR_NODE, gpios)
 class Rail {
 	int pos = 0;
 	int target_pos = 0;
 	lv_obj_t *label;
 	int sleep_msec = 1;
 	bool current_to_left = true;
+	const struct device* led0_dev = device_get_binding(LED0);
+	const struct device* led1_dev = device_get_binding(LED1);
+	const struct device* pulse_dev = device_get_binding(PULSE);
+	const struct device* dir_dev = device_get_binding(DIR);
 
 	void flip_dir() {
 		current_to_left = !current_to_left;
 	};
+	void set_dir(bool to_left) {
+		if (to_left) {
+			gpio_pin_set(led0_dev, LED0_PIN, true);
+			gpio_pin_set(led1_dev, LED1_PIN, false);
+		} else {
+			gpio_pin_set(led0_dev, LED0_PIN, false);
+			gpio_pin_set(led1_dev, LED1_PIN, true);
+		}
+		if (to_left != current_to_left) {
+			// gpio_pin_set(dir_dev, DIR_PIN, to_left);
+			current_to_left = to_left;
+		}
+
+	}
 	void step(bool to_left) {
 		k_sem_take(&threadRail_sem, K_FOREVER);
-		if (to_left != current_to_left) {
-			flip_dir();
-		}
+		set_dir(to_left);
+		// gpio_pin_set(pulse_dev, PULSE_PIN, true);
+		// k_sleep(K_MSEC(10));
+		// gpio_pin_set(pulse_dev, PULSE_PIN, false);
+		// k_sleep(K_MSEC(10));
 		if (to_left) {
 			++pos;
 		} else {
@@ -150,19 +193,6 @@ class Rail {
 		}
 		k_sem_give(&threadRail_sem);
 		print_to_label();
-	};
-public:
-	Rail() {
-		label = lv_label_create(lv_scr_act(), NULL);
-		lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
-
-
-		print_to_label();
-	};
-	int go(int relative) {
-		target_pos += relative;
-		print_to_label();
-		return pos;
 	};
 	bool is_in_pos() {
 		return pos == target_pos;
@@ -174,6 +204,8 @@ public:
 			} else if (pos > target_pos) {
 				step(false);
 			} else {
+				gpio_pin_set(led0_dev, LED0_PIN, false);
+				gpio_pin_set(led1_dev, LED1_PIN, false);
 				break;
 			}
 			k_sleep(K_MSEC(sleep_msec));
@@ -185,6 +217,51 @@ public:
 		lv_label_set_text(label, pos_str);
 		lv_task_handler();
 	}
+public:
+	Rail() {
+		if (led0_dev != NULL) {
+			int ret = gpio_pin_configure(led0_dev, LED0_PIN, GPIO_OUTPUT_ACTIVE | LED0_FLAGS);
+			if (ret == 0) {
+				gpio_pin_set(led0_dev, LED0_PIN, true);
+				k_msleep(100);
+				gpio_pin_set(led0_dev, LED0_PIN, false);
+			}
+		}
+		if (led1_dev != NULL) {
+			int ret = gpio_pin_configure(led1_dev, LED1_PIN, GPIO_OUTPUT_ACTIVE | LED1_FLAGS);
+			if (ret == 0) {
+				gpio_pin_set(led1_dev, LED1_PIN, true);
+				k_msleep(100);
+				gpio_pin_set(led1_dev, LED1_PIN, false);
+			}
+		}
+
+		// if (pulse_dev != NULL) {
+		// 	int ret = gpio_pin_configure(pulse_dev, PULSE_PIN, GPIO_OUTPUT_ACTIVE | PULSE_FLAGS);
+		// }
+		// if (dir_dev != NULL) {
+		// 	int ret = gpio_pin_configure(dir_dev, DIR_PIN, GPIO_OUTPUT_ACTIVE | DIR_FLAGS);
+		// }
+
+
+
+		label = lv_label_create(lv_scr_act(), NULL);
+		lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+	};
+	void loop() {
+		while (1) {
+			if (! is_in_pos()) {
+				run_to_target();
+			}
+			print_to_label();
+			k_sleep(K_MSEC(sleep_msec));
+		}
+	}
+	int go(int relative) {
+		target_pos += relative;
+		print_to_label();
+		return pos;
+	};
 };
 
 K_THREAD_STACK_DEFINE(threadRail_stack_area, STACKSIZE);
@@ -194,15 +271,7 @@ void threadRail(void *railV, void *dummy2, void *dummy3)
 	ARG_UNUSED(dummy2);
 	ARG_UNUSED(dummy3);
 	Rail* rail = static_cast<Rail *>(railV);
-
-	while (1) {
-		if (! rail->is_in_pos()) {
-			rail->run_to_target();
-		}
-		rail->print_to_label();
-		k_sleep(K_MSEC(10));
-		// k_sleep(K_MSEC(sleep_msec));
-	}
+	rail->loop();
 }
 
 #define CONSOLE_HELP  \
@@ -249,14 +318,12 @@ void display_init() {
 	display_blanking_off(display_dev);
 }
 
-
 void main(void) {
 
 	display_init();
 	console_getline_init();
 	GyroWaiter waiter;
 	Rail rail;
-	lv_task_handler();
 
 	k_tid_t my_tid_console = k_thread_create(&threadConsole_data, threadConsole_stack_area,
 			K_THREAD_STACK_SIZEOF(threadConsole_stack_area),
