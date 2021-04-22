@@ -25,14 +25,14 @@
 
 class GyroWaiter {
   const struct device *mpu6050;
-  struct k_sem *threadRail_sem;
+  struct k_sem *threadStepper_sem;
   lv_obj_t *label;
   int num_of_samples = 4;
   double boundary = 0.1 * num_of_samples;
   int sleep_msec = 50;
 
 public:
-  GyroWaiter(struct k_sem *_threadRail_sem);
+  GyroWaiter(struct k_sem *_threadStepper_sem);
   int wait();
 };
 #endif /* GYRO_WAITER_H */

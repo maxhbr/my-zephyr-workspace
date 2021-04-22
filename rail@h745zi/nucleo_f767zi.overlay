@@ -3,14 +3,6 @@
  * SPDX-License-Identifier: Apache-2.0
  */
  / {
-	leds {
-		compatible = "gpio-leds";
-		red_led: led_3 {
-			gpios = <&gpiob 14 GPIO_ACTIVE_HIGH>;
-			label = "User LD3";
-		};
-	};
-
 	gpio_keys {
 		compatible = "gpio-keys";
 		pulse_gpio: pulse_gpio {
@@ -23,9 +15,6 @@
 		};
 	};
 	aliases {
-		// led0 = &green_led;
-		led1 = &yellow_led;
-		led2 = &red_led;
 		pulse = &pulse_gpio;
         dir = &dir_gpio;
 	};

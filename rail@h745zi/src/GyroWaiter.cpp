@@ -20,8 +20,8 @@
 
 #include "GyroWaiter.h"
 
-GyroWaiter::GyroWaiter(struct k_sem *_threadRail_sem) {
-  threadRail_sem = _threadRail_sem;
+GyroWaiter::GyroWaiter(struct k_sem *_threadStepper_sem) {
+  threadStepper_sem = _threadStepper_sem;
   label = lv_label_create(lv_scr_act(), NULL);
   lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
 
@@ -39,7 +39,7 @@ int GyroWaiter::wait() {
   int rc = 0;
 
   printk("wait for semathor...\n");
-  k_sem_take(threadRail_sem, K_FOREVER);
+  k_sem_take(threadStepper_sem, K_FOREVER);
   printk("wait for stall...\n");
   while (1) {
     rc = sensor_sample_fetch(mpu6050);
@@ -86,6 +86,6 @@ int GyroWaiter::wait() {
     k_sleep(K_MSEC(sleep_msec));
     ++count;
   }
-  k_sem_give(threadRail_sem);
+  k_sem_give(threadStepper_sem);
   return rc;
 };

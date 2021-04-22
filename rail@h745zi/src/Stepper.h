@@ -1,5 +1,5 @@
-#ifndef RAIL_H
-#define RAIL_H
+#ifndef STEPPER_H
+#define STEPPER_H
 
 #include <device.h>
 #include <init.h>
@@ -25,6 +25,10 @@
 #define LED1_LABEL DT_GPIO_LABEL(LED1_NODE, gpios)
 #define LED1_PIN DT_GPIO_PIN(LED1_NODE, gpios)
 #define LED1_FLAGS DT_GPIO_FLAGS(LED1_NODE, gpios)
+#define LED2_NODE DT_ALIAS(led2)
+#define LED2_LABEL DT_GPIO_LABEL(LED2_NODE, gpios)
+#define LED2_PIN DT_GPIO_PIN(LED2_NODE, gpios)
+#define LED2_FLAGS DT_GPIO_FLAGS(LED2_NODE, gpios)
 
 #define PULSE_NODE DT_ALIAS(pulse)
 #define PULSE_LABEL DT_GPIO_LABEL(PULSE_NODE, gpios)
@@ -43,7 +47,7 @@ class GPIO {
 
 public:
   GPIO(const char *label, int _pin, int flags) {
-    LOG_MODULE_DECLARE(rail);
+    LOG_MODULE_DECLARE(stepper);
     pin = _pin;
     dev = device_get_binding(label);
     if (dev != NULL) {
@@ -56,7 +60,7 @@ public:
     }
   };
   void set(bool value) {
-    LOG_MODULE_DECLARE(rail);
+    LOG_MODULE_DECLARE(stepper);
     if (ret == 0) {
       if (value != cur_value) {
         cur_value = value;
@@ -82,16 +86,17 @@ class PULSE : public GPIO {
 public:
   PULSE(const char *label, int _pin, int flags) : GPIO(label, _pin, flags){};
   void pulse() {
-    LOG_MODULE_DECLARE(rail);
+    LOG_MODULE_DECLARE(stepper);
     set(true);
-    k_msleep(1);
+    k_usleep(10);
     set(false);
-    k_msleep(1);
+    k_usleep(10);
   };
 };
 
-class Rail {
-  struct k_sem *threadRail_sem;
+class Stepper {
+  struct k_sem *threadStepper_sem;
+  struct k_sem *is_moving_sem;
   int pos = 0;
   int target_pos = 0;
   lv_obj_t *label;
@@ -100,6 +105,7 @@ class Rail {
 
   LED led0 = LED(LED0_LABEL, LED0_PIN, LED0_FLAGS);
   LED led1 = LED(LED1_LABEL, LED1_PIN, LED1_FLAGS);
+  LED led2 = LED(LED2_LABEL, LED2_PIN, LED2_FLAGS);
   PULSE pulse = PULSE(PULSE_LABEL, PULSE_PIN, PULSE_FLAGS);
   GPIO dir = GPIO(DIR_LABEL, DIR_PIN, DIR_FLAGS);
 
@@ -110,9 +116,11 @@ class Rail {
   void print_to_label();
 
 public:
-  Rail(struct k_sem *_threadRail_sem);
+  Stepper(struct k_sem *_threadStepper_sem);
   void loop();
   int go(int relative);
+  int wait();
+  int go_and_wait(int relative);
 };
 
-#endif /* RAIL_H */
+#endif /* STEPPER_H */
