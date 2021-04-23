@@ -77,7 +77,7 @@ void Stepper::loop() {
       run_to_target();
       print_to_label();
     }
-    if((++counter)%100==0) {
+    if ((++counter) % 100 == 0) {
       print_to_label();
     }
     k_sleep(K_MSEC(1));
@@ -98,7 +98,7 @@ int Stepper::wait() {
 
 int Stepper::go_and_wait(int relative) {
   go(relative);
-  while (! is_in_pos()) {
+  while (!is_in_pos()) {
     k_sleep(K_MSEC(1));
   }
 }

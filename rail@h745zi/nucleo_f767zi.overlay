@@ -6,7 +6,7 @@
 	gpio_keys {
 		compatible = "gpio-keys";
 		pulse_gpio: pulse_gpio {
-			gpios = <&gpioa 8 GPIO_ACTIVE_HIGH>; /* D6 */
+			gpios = <&gpioe 9 GPIO_ACTIVE_HIGH>; /* D6 */
 			label = "Pulse GPIO";
 		};
 		dir_gpio: dir_gpio {

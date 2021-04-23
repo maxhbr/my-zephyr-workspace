@@ -14,7 +14,6 @@
 #include <device.h>
 #include <init.h>
 #include <kernel.h>
-// #include <net/buf.h>
 #include <sys/byteorder.h>
 #include <sys/crc.h>
 #include <sys/printk.h>
@@ -24,14 +23,6 @@
 #include <lvgl.h>
 
 #include <drivers/display.h>
-#include <drivers/gpio.h>
-#include <drivers/sensor.h>
-// #include <drivers/led_strip.h>
-// #include <drivers/spi.h>
-// #include <drivers/uart.h>
-// #include <usb/usb_device.h>
-// #include <usb/class/usb_hid.h>
-// #include <drivers/watchdog.h>
 
 #include <logging/log.h>
 LOG_MODULE_REGISTER(myapp);
@@ -68,6 +59,7 @@ void threadConsole(void *stepperV, void *waiterV, void *dummy3) {
   GyroWaiter *waiter = static_cast<GyroWaiter *>(waiterV);
   int rc = 0;
 
+  k_sleep(K_MSEC(2000));
   printk(CONSOLE_HELP);
   while (1) {
     printk("$ ");
@@ -82,6 +74,7 @@ void threadConsole(void *stepperV, void *waiterV, void *dummy3) {
     } else {
       int x = atoi(s);
       stepper->go(x);
+      // stepper->wait();
     }
 
     lv_task_handler();
@@ -114,10 +107,10 @@ void main(void) {
       &waiter, NULL, PRIORITY, 0, K_NO_WAIT);
   k_thread_name_set(&threadConsole_data, "thread_r");
 
-  k_tid_t my_tid_stepper =
-      k_thread_create(&threadStepper_data, threadStepper_stack_area,
-                      K_THREAD_STACK_SIZEOF(threadStepper_stack_area), threadStepper,
-                      &stepper, NULL, NULL, PRIORITY, 0, K_NO_WAIT);
+  k_tid_t my_tid_stepper = k_thread_create(
+      &threadStepper_data, threadStepper_stack_area,
+      K_THREAD_STACK_SIZEOF(threadStepper_stack_area), threadStepper, &stepper,
+      NULL, NULL, PRIORITY, 0, K_NO_WAIT);
   k_thread_name_set(&threadStepper_data, "thread_r");
 
   k_thread_start(&threadConsole_data);

@@ -5,7 +5,7 @@
 # set(BOARD_ROOT ${CMAKE_CURRENT_LIST_DIR})
 
 
-set(BOARD nucleo_h745zi_q_m7)
+set(BOARD nucleo_f767zi) # nucleo_h745zi_q_m7)
 set(SHIELD ssd1306_128x64)
 
 cmake_minimum_required(VERSION 3.13.1)
