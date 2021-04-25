@@ -21,7 +21,7 @@ Display::Display() {
   //   lv_obj_set_style_text_font(lv_scr_act(), font_normal, 0);
 
   positionLabel = lv_label_create(lv_scr_act(), NULL);
-  lv_obj_align(positionLabel, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 20);
+  lv_obj_align(positionLabel, NULL, LV_ALIGN_IN_TOP_MID, 20, 20);
   lv_obj_add_style(positionLabel, 0, &style_normal);
 
   secondaryLabel = lv_label_create(lv_scr_act(), NULL);
