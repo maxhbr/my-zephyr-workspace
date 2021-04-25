@@ -20,11 +20,20 @@ Display::Display() {
   lv_style_set_text_font(&style_normal, LV_STATE_DEFAULT, font_normal);
   //   lv_obj_set_style_text_font(lv_scr_act(), font_normal, 0);
 
-  positionLabel = lv_label_create(lv_scr_act(), NULL);
-  lv_obj_align(positionLabel, NULL, LV_ALIGN_IN_TOP_MID, 20, 20);
-  lv_obj_add_style(positionLabel, 0, &style_normal);
+  lv_obj_t * panel1 = lv_obj_create(lv_scr_act(), NULL);
+  lv_obj_align(panel1, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+  lv_obj_set_height(panel1, 70);
+  lv_obj_set_width(panel1, 320);
+//   lv_obj_set_width(panel1, LV_PCT(100));
 
-  secondaryLabel = lv_label_create(lv_scr_act(), NULL);
-  lv_obj_add_style(secondaryLabel, 0, &style_normal);
-  lv_obj_align(secondaryLabel, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+  position_label = lv_label_create(panel1, NULL);
+  lv_obj_align(position_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 20);
+  lv_obj_add_style(position_label, 0, &style_normal);
+  target_position_label = lv_label_create(panel1, NULL);
+  lv_obj_align(target_position_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 50);
+  lv_obj_add_style(target_position_label, 0, &style_normal);
+
+  secondary_label = lv_label_create(lv_scr_act(), NULL);
+  lv_obj_add_style(secondary_label, 0, &style_normal);
+  lv_obj_align(secondary_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 80);
 }

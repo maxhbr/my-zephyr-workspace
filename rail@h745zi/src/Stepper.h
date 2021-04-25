@@ -100,6 +100,7 @@ class Stepper {
   int pos = 0;
   int target_pos = 0;
   lv_obj_t *label;
+  lv_obj_t *target_label;
   int sleep_msec = 1;
   bool current_to_left = true;
 
@@ -116,7 +117,7 @@ class Stepper {
   void print_to_label();
 
 public:
-  Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label);
+  Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label, lv_obj_t *_target_label);
   void loop();
   int go(int relative);
   void wait();

@@ -88,7 +88,7 @@ void main(void) {
   Display display;
   console_getline_init();
   GyroWaiter waiter(&threadStepper_sem, display.getSecondaryLabel());
-  Stepper stepper(&threadStepper_sem, display.getPositionLabel());
+  Stepper stepper(&threadStepper_sem, display.getPositionLabel(), display.getTargetPositionLabel());
 
   k_tid_t my_tid_console = k_thread_create(
       &threadConsole_data, threadConsole_stack_area,

@@ -34,7 +34,6 @@ int GyroWaiter::wait() {
   double cyclic_buffer[num_of_samples * 3] = {1, 1, 1};
   int idx = 1;
   int count = 0;
-  int bail_count = 40;
   int rc = 0;
 
   printk("wait for semathor...\n");
@@ -53,7 +52,6 @@ int GyroWaiter::wait() {
     printk("... %s\n", gyro_str);
     if (label) {
       lv_label_set_text(label, gyro_str);
-      lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
     }
 
     cyclic_buffer[idx * 3] = sensor_value_to_double(&gyro[0]);

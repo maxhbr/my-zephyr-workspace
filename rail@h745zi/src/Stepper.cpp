@@ -3,10 +3,11 @@
 LOG_MODULE_REGISTER(stepper);
 
 K_SEM_DEFINE(_is_moving_sem, 1, 1);
-Stepper::Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label) {
+Stepper::Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label, lv_obj_t *_target_label) {
   threadStepper_sem = _threadStepper_sem;
   is_moving_sem = &_is_moving_sem;
   label = _label;
+  target_label = _target_label;
 
   // TEST...
   dir.set(true);
@@ -72,8 +73,10 @@ void Stepper::run_to_target() {
 }
 void Stepper::print_to_label() {
   char pos_str[21] = {0};
-  sprintf(pos_str, "%i > %i", target_pos, pos);
+  sprintf(pos_str, "curr: %i", pos);
   lv_label_set_text(label, pos_str);
+  sprintf(pos_str, "dest: %i", target_pos);
+  lv_label_set_text(target_label, pos_str);
   lv_task_handler();
 }
 void Stepper::loop() {

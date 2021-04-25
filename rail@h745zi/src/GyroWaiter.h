@@ -29,6 +29,7 @@ class GyroWaiter {
   lv_obj_t *label;
   int num_of_samples = 4;
   double boundary = 0.1 * num_of_samples;
+  int bail_count = 400;
   int sleep_msec = 50;
 
 public:
