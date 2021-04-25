@@ -20,10 +20,9 @@
 
 #include "GyroWaiter.h"
 
-GyroWaiter::GyroWaiter(struct k_sem *_threadStepper_sem) {
+GyroWaiter::GyroWaiter(struct k_sem *_threadStepper_sem, lv_obj_t *_label) {
   threadStepper_sem = _threadStepper_sem;
-  label = lv_label_create(lv_scr_act(), NULL);
-  lv_obj_align(label, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+  label = _label;
 
   const char *const mpu_label = DT_LABEL(DT_INST(0, invensense_mpu6050));
   mpu6050 = device_get_binding(mpu_label);

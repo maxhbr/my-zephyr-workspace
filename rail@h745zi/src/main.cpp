@@ -27,6 +27,7 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(myapp);
 
+#include "Display.h"
 #include "GyroWaiter.h"
 #include "Stepper.h"
 
@@ -82,24 +83,12 @@ void threadConsole(void *stepperV, void *waiterV, void *dummy3) {
   }
 }
 
-void display_init() {
-  const struct device *display_dev;
-  display_dev = device_get_binding(CONFIG_LVGL_DISPLAY_DEV_NAME);
-
-  if (display_dev == NULL) {
-    LOG_ERR("device not found.  Aborting test.");
-    return;
-  }
-  display_blanking_off(display_dev);
-}
-
 K_SEM_DEFINE(threadStepper_sem, 1, 1);
 void main(void) {
-
-  display_init();
+  Display display;
   console_getline_init();
-  GyroWaiter waiter(&threadStepper_sem);
-  Stepper stepper(&threadStepper_sem);
+  GyroWaiter waiter(&threadStepper_sem, display.getSecondaryLabel());
+  Stepper stepper(&threadStepper_sem, display.getPositionLabel());
 
   k_tid_t my_tid_console = k_thread_create(
       &threadConsole_data, threadConsole_stack_area,

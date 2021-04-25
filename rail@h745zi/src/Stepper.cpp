@@ -3,12 +3,10 @@
 LOG_MODULE_REGISTER(stepper);
 
 K_SEM_DEFINE(_is_moving_sem, 1, 1);
-Stepper::Stepper(struct k_sem *_threadStepper_sem) {
+Stepper::Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label) {
   threadStepper_sem = _threadStepper_sem;
   is_moving_sem = &_is_moving_sem;
-
-  label = lv_label_create(lv_scr_act(), NULL);
-  lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+  label = _label;
 
   dir.set(true);
   dir.set(false);
@@ -91,14 +89,15 @@ int Stepper::go(int relative) {
   return pos;
 };
 
-int Stepper::wait() {
+void Stepper::wait() {
   k_sem_take(is_moving_sem, K_FOREVER);
   k_sem_give(is_moving_sem);
 }
 
 int Stepper::go_and_wait(int relative) {
-  go(relative);
+  int res = go(relative);
   while (!is_in_pos()) {
     k_sleep(K_MSEC(1));
   }
+  return res;
 }

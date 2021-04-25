@@ -38,3 +38,20 @@
 		int-gpios = <&arduino_header 2 GPIO_ACTIVE_HIGH>; /* D7 */
 	};
 };
+
+&arduino_spi {
+	ili9340@0 {
+		rotation = < 0x10E >;
+	};
+};
+
+&arduino_serial {
+	status = "okay";
+	current-speed = <115200>;
+
+	esp8266 {
+		compatible = "espressif,esp";
+		label = "esp8266";
+		status = "okay";
+	};
+};
