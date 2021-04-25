@@ -8,11 +8,19 @@ Stepper::Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label) {
   is_moving_sem = &_is_moving_sem;
   label = _label;
 
+  // TEST...
   dir.set(true);
+  k_sleep(K_MSEC(10));
   dir.set(false);
-
+  k_sleep(K_MSEC(10));
   go(1);
+  k_sleep(K_MSEC(10));
   go(-1);
+  k_sleep(K_MSEC(10));
+  go(1);
+  k_sleep(K_MSEC(10));
+  go(-1);
+  k_sleep(K_MSEC(10));
 }
 
 void Stepper::set_dir(bool to_left) {
