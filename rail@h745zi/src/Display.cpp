@@ -35,5 +35,5 @@ Display::Display() {
 
   secondary_label = lv_label_create(lv_scr_act(), NULL);
   lv_obj_add_style(secondary_label, 0, &style_normal);
-  lv_obj_align(secondary_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 80);
+  lv_obj_align(secondary_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 110);
 }

@@ -47,10 +47,8 @@ void threadStepper(void *stepperV, void *dummy2, void *dummy3) {
   stepper->loop();
 }
 
-#define CONSOLE_HELP                                                           \
-  "help\n"                                                                     \
-  "----\n"                                                                     \
-  "   s -> do a single shot\n"                                                 \
+#define CONSOLE_HELP \
+  "   s -> do a single shot\n" \
   "   $int -> move relative\n"
 K_THREAD_STACK_DEFINE(threadConsole_stack_area, STACKSIZE);
 static struct k_thread threadConsole_data;
