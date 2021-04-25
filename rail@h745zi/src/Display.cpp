@@ -14,9 +14,9 @@ Display::Display() {
   }
   display_blanking_off(display_dev);
 
-  //   font_subtitle  =  &lv_font_montserrat_24;
-  //   font_normal    =  &lv_font_montserrat_16;
-  //   font_small     = &lv_font_montserrat_12;
+    font_subtitle  =  &lv_font_montserrat_24;
+    font_normal    =  &lv_font_montserrat_16;
+    font_small     = &lv_font_montserrat_12;
   //   // lv_theme_default_init(NULL, *palette_primary, palette_secondary,
   //   false, font_small, font_normal, font_subtitle);
 
