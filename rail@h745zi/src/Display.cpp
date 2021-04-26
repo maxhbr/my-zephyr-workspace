@@ -33,7 +33,11 @@ void fillMenuBar(lv_obj_t *panel) {
   lv_obj_t * r_right_btn = addButton(panel, ">>>", 60);
   lv_obj_align(r_right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -5, 2);
 
-  lv_obj_t * slider1 = lv_slider_create(panel, NULL);
+  lv_obj_t * slider = lv_slider_create(panel, NULL);
+  lv_obj_align(slider, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
+  lv_slider_set_range(slider, 0, 100);
+  lv_slider_set_value(slider, 50, 0);
+    // lv_obj_set_width(slider, LV_PCT(95))
 }
 
 Display::Display() {
@@ -57,18 +61,36 @@ Display::Display() {
   lv_style_set_bg_color(&style_box, LV_STATE_DEFAULT, LV_COLOR_BLACK);
   lv_style_set_bg_opa(&style_box, LV_STATE_DEFAULT, LV_OPA_COVER);
 
-  lv_obj_t * panel1 = lv_obj_create(lv_scr_act(), NULL);
-  lv_obj_align(panel1, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
-  lv_obj_set_height(panel1, 70);
-  lv_obj_set_width(panel1, 320);
-//   lv_obj_set_width(panel1, LV_PCT(100));
 
-  position_label = lv_label_create(panel1, NULL);
+  lv_obj_t * header = lv_obj_create(lv_scr_act(), NULL);
+  lv_obj_align(header, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+  lv_obj_set_height(header, 20);
+  lv_obj_set_width(header, 320);
+//   lv_obj_set_width(header, LV_PCT(100));
+
+  position_label = lv_label_create(header, NULL);
   lv_obj_align(position_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 20);
   lv_obj_add_style(position_label, 0, &style_normal);
-  target_position_label = lv_label_create(panel1, NULL);
-  lv_obj_align(target_position_label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 50);
+  target_position_label = lv_label_create(header, NULL);
+  lv_obj_align(target_position_label, NULL, LV_ALIGN_IN_TOP_MID, 20, 20);
   lv_obj_add_style(target_position_label, 0, &style_normal);
+
+
+
+/*Create a Tab view object*/
+lv_obj_t *tabview;
+tabview = lv_tabview_create(lv_scr_act(), NULL);
+lv_obj_align(tabview, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+  lv_obj_set_height(tabview, 220);
+  lv_obj_set_width(tabview, 320);
+
+/*Add 3 tabs (the tabs are page (lv_page) and can be scrolled*/
+lv_obj_t *tab1 = lv_tabview_add_tab(tabview, "coarse");
+lv_obj_t *tab2 = lv_tabview_add_tab(tabview, "fine");
+lv_obj_t *tab3 = lv_tabview_add_tab(tabview, "go");
+
+
+
 
   secondary_label = lv_label_create(lv_scr_act(), NULL);
   lv_obj_add_style(secondary_label, 0, &style_normal);
