@@ -31,6 +31,19 @@
 	};
 };
 
+&spi1 {
+    pinctrl-0 = <&spi1_nss_pa4 &spi1_sck_pa5
+                 &spi1_miso_pa6 &spi1_mosi_pb5>;
+    status = "okay";
+};
+arduino_spi: &spi1 {};
+&arduino_spi {
+	ili9340@0 {
+		rotation = < 0x10E >;
+	};
+};
+
+
 &arduino_i2c {
 	status = "okay";
 	touch_controller: ft5336@38 {
