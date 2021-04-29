@@ -117,7 +117,8 @@ class Stepper {
   void print_to_label();
 
 public:
-  Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label, lv_obj_t *_target_label);
+  Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label,
+          lv_obj_t *_target_label);
   void loop();
   int go(int relative);
   void wait();

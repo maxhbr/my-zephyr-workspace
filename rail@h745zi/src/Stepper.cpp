@@ -3,7 +3,8 @@
 LOG_MODULE_REGISTER(stepper);
 
 K_SEM_DEFINE(_is_moving_sem, 1, 1);
-Stepper::Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label, lv_obj_t *_target_label) {
+Stepper::Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label,
+                 lv_obj_t *_target_label) {
   threadStepper_sem = _threadStepper_sem;
   is_moving_sem = &_is_moving_sem;
   label = _label;

@@ -47,8 +47,8 @@ void threadStepper(void *stepperV, void *dummy2, void *dummy3) {
   stepper->loop();
 }
 
-#define CONSOLE_HELP \
-  "   s -> do a single shot\n" \
+#define CONSOLE_HELP                                                           \
+  "   s -> do a single shot\n"                                                 \
   "   $int -> move relative\n"
 K_THREAD_STACK_DEFINE(threadConsole_stack_area, STACKSIZE);
 static struct k_thread threadConsole_data;
@@ -83,10 +83,11 @@ void threadConsole(void *stepperV, void *waiterV, void *dummy3) {
 
 K_SEM_DEFINE(threadStepper_sem, 1, 1);
 void main(void) {
-  Display display;
   console_getline_init();
+  Display display;
   GyroWaiter waiter(&threadStepper_sem, display.getSecondaryLabel());
-  Stepper stepper(&threadStepper_sem, display.getPositionLabel(), display.getTargetPositionLabel());
+  Stepper stepper(&threadStepper_sem, display.getPositionLabel(),
+                  display.getTargetPositionLabel());
 
   k_tid_t my_tid_console = k_thread_create(
       &threadConsole_data, threadConsole_stack_area,
