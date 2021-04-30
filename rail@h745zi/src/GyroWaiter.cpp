@@ -20,12 +20,11 @@
 
 #include "GyroWaiter.h"
 
-GyroWaiter::GyroWaiter(struct k_sem *_threadStepper_sem, lv_obj_t *_label) {
+GyroWaiter::GyroWaiter(const struct device *_mpu6050, struct k_sem *_threadStepper_sem, lv_obj_t *_label) {
   threadStepper_sem = _threadStepper_sem;
   label = _label;
 
-  const char *const mpu_label = DT_LABEL(DT_INST(0, invensense_mpu6050));
-  mpu6050 = device_get_binding(mpu_label);
+  mpu6050 = _mpu6050;
 };
 int GyroWaiter::wait() {
   char gyro_str[40] = {0};

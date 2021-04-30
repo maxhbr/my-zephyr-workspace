@@ -33,7 +33,7 @@ class GyroWaiter {
   int sleep_msec = 50;
 
 public:
-  GyroWaiter(struct k_sem *_threadStepper_sem, lv_obj_t *_label);
+  GyroWaiter(const struct device *mpu6050, struct k_sem *_threadStepper_sem, lv_obj_t *_label);
   int wait();
 };
 #endif /* GYRO_WAITER_H */

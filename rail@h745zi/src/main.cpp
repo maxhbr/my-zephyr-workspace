@@ -81,19 +81,32 @@ void threadConsole(void *stepperV, void *waiterV, void *dummy3) {
   }
 }
 
-K_SEM_DEFINE(threadStepper_sem, 1, 1);
-void main(void) {
+void init_console(Stepper *stepper, GyroWaiter *waiter) {
   console_getline_init();
-  Display display;
-  GyroWaiter waiter(&threadStepper_sem, display.getSecondaryLabel());
-  Stepper stepper(&threadStepper_sem, display.getPositionLabel(),
-                  display.getTargetPositionLabel());
 
   k_tid_t my_tid_console = k_thread_create(
       &threadConsole_data, threadConsole_stack_area,
-      K_THREAD_STACK_SIZEOF(threadConsole_stack_area), threadConsole, &stepper,
-      &waiter, NULL, PRIORITY, 0, K_NO_WAIT);
-  k_thread_name_set(&threadConsole_data, "thread_r");
+      K_THREAD_STACK_SIZEOF(threadConsole_stack_area), threadConsole, stepper,
+      waiter, NULL, PRIORITY, 0, K_NO_WAIT);
+  k_thread_name_set(&threadConsole_data, "thread_c");
+}
+
+K_SEM_DEFINE(threadStepper_sem, 1, 1);
+void main(void) {
+  const struct device *display_dev = device_get_binding(CONFIG_LVGL_DISPLAY_DEV_NAME);
+  if (display_dev == NULL){
+    LOG_ERR("display device not found.");
+    return;
+  }
+  Display display(display_dev);
+  Stepper stepper(&threadStepper_sem, display.getPositionLabel(),
+                  display.getTargetPositionLabel());
+
+  const char *const mpu_label = DT_LABEL(DT_INST(0, invensense_mpu6050));
+  const struct device *mpu6050 = device_get_binding(mpu_label);
+  GyroWaiter waiter(mpu6050, &threadStepper_sem, display.getSecondaryLabel());
+
+  init_console(&stepper, &waiter);
 
   k_tid_t my_tid_stepper = k_thread_create(
       &threadStepper_data, threadStepper_stack_area,
