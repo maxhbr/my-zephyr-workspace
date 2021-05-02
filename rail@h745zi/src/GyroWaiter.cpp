@@ -20,9 +20,9 @@
 
 #include "GyroWaiter.h"
 
-GyroWaiter::GyroWaiter(const struct device *_mpu6050, struct k_sem *_threadStepper_sem, lv_obj_t *_label) {
+GyroWaiter::GyroWaiter(const struct device *_mpu6050,
+                       struct k_sem *_threadStepper_sem, Display *display) {
   threadStepper_sem = _threadStepper_sem;
-  label = _label;
 
   mpu6050 = _mpu6050;
 };

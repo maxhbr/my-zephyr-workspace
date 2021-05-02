@@ -2,13 +2,68 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(stepper);
 
+void Stepper::fill_nav_panel(Display *display, lv_obj_t *panel) {
+  lv_obj_t *l_left_btn = display->add_button(panel, "<<<", 60);
+  lv_obj_align(l_left_btn, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 2);
+  lv_obj_set_event_cb(l_left_btn, [](lv_obj_t *btn, lv_event_t event) {
+    if (event == LV_EVENT_CLICKED) {
+      printf("go(-12800);");
+    }
+  });
+  lv_obj_t *left_btn = display->add_button(panel, "<<", 60);
+  lv_obj_align(left_btn, NULL, LV_ALIGN_IN_TOP_LEFT, 75, 2);
+  lv_obj_set_event_cb(left_btn, [](lv_obj_t *btn, lv_event_t event) {
+    if (event == LV_EVENT_CLICKED) {
+      printf("go(-1280);");
+    }
+  });
+  lv_obj_t *right_btn = display->add_button(panel, ">>", 60);
+  lv_obj_align(right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -75, 2);
+  lv_obj_set_event_cb(right_btn, [](lv_obj_t *btn, lv_event_t event) {
+    if (event == LV_EVENT_CLICKED) {
+      printf("go(1280);");
+    }
+  });
+  lv_obj_t *r_right_btn = display->add_button(panel, ">>>", 60);
+  lv_obj_align(r_right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -5, 2);
+  lv_obj_set_event_cb(r_right_btn, [](lv_obj_t *btn, lv_event_t event) {
+    if (event == LV_EVENT_CLICKED) {
+      printf("go(12800);");
+    }
+  });
+
+  // lv_obj_t *slider = lv_slider_create(panel, NULL);
+  // lv_obj_align(slider, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
+  // lv_slider_set_range(slider, 0, 100);
+  // lv_slider_set_value(slider, 50, 0);
+  // // lv_obj_set_width(slider, LV_PCT(95))
+}
+
+void Stepper::init_coarse_tab(Display *display, lv_obj_t *parent) {
+  lv_obj_t *panel_nav = display->add_panel(parent);
+  lv_obj_align(panel_nav, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 30);
+  lv_obj_set_height(panel_nav, 90);
+  lv_obj_set_width(panel_nav, 320);
+  fill_nav_panel(display, panel_nav);
+
+  lv_obj_t *header = lv_obj_create(parent, NULL);
+  lv_obj_align(header, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
+  lv_obj_set_height(header, 20);
+  lv_obj_set_width(header, 320);
+  //   lv_obj_set_width(header, LV_PCT(100));
+
+  label = display->add_label(header);
+  lv_obj_align(label, NULL, LV_ALIGN_IN_TOP_LEFT, 20, 2);
+  target_label = display->add_label(header);
+  lv_obj_align(target_label, NULL, LV_ALIGN_IN_TOP_MID, 20, 2);
+}
+
 K_SEM_DEFINE(_is_moving_sem, 1, 1);
-Stepper::Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label,
-                 lv_obj_t *_target_label) {
+Stepper::Stepper(struct k_sem *_threadStepper_sem, Display *display) {
   threadStepper_sem = _threadStepper_sem;
   is_moving_sem = &_is_moving_sem;
-  label = _label;
-  target_label = _target_label;
+
+  init_coarse_tab(display, display->make_tab("coarse"));
 
   // TEST...
   dir.set(true);

@@ -41,7 +41,7 @@
 
 &arduino_spi {
 	ili9340@0 {
-		rotation = < 0x10E >;
+		rotation = < 90 >;
 	};
 };
 

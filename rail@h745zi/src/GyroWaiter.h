@@ -23,6 +23,8 @@
 #include <drivers/gpio.h>
 #include <drivers/sensor.h>
 
+#include "Display.h"
+
 class GyroWaiter {
   const struct device *mpu6050;
   struct k_sem *threadStepper_sem;
@@ -33,7 +35,8 @@ class GyroWaiter {
   int sleep_msec = 50;
 
 public:
-  GyroWaiter(const struct device *mpu6050, struct k_sem *_threadStepper_sem, lv_obj_t *_label);
+  GyroWaiter(const struct device *mpu6050, struct k_sem *_threadStepper_sem,
+             Display *display);
   int wait();
 };
 #endif /* GYRO_WAITER_H */

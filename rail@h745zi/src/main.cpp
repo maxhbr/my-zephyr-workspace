@@ -93,18 +93,18 @@ void init_console(Stepper *stepper, GyroWaiter *waiter) {
 
 K_SEM_DEFINE(threadStepper_sem, 1, 1);
 void main(void) {
-  const struct device *display_dev = device_get_binding(CONFIG_LVGL_DISPLAY_DEV_NAME);
-  if (display_dev == NULL){
+  const struct device *display_dev =
+      device_get_binding(CONFIG_LVGL_DISPLAY_DEV_NAME);
+  if (display_dev == NULL) {
     LOG_ERR("display device not found.");
     return;
   }
   Display display(display_dev);
-  Stepper stepper(&threadStepper_sem, display.getPositionLabel(),
-                  display.getTargetPositionLabel());
+  Stepper stepper(&threadStepper_sem, &display);
 
   const char *const mpu_label = DT_LABEL(DT_INST(0, invensense_mpu6050));
   const struct device *mpu6050 = device_get_binding(mpu_label);
-  GyroWaiter waiter(mpu6050, &threadStepper_sem, display.getSecondaryLabel());
+  GyroWaiter waiter(mpu6050, &threadStepper_sem, &display);
 
   init_console(&stepper, &waiter);
 

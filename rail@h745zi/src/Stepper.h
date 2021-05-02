@@ -17,6 +17,9 @@
 
 #include <logging/log.h>
 
+#include "Display.h"
+#include "GPIOs.h"
+
 #define LED0_NODE DT_ALIAS(led0)
 #define LED0_LABEL DT_GPIO_LABEL(LED0_NODE, gpios)
 #define LED0_PIN DT_GPIO_PIN(LED0_NODE, gpios)
@@ -39,49 +42,6 @@
 #define DIR_PIN DT_GPIO_PIN(DIR_NODE, gpios)
 #define DIR_FLAGS DT_GPIO_FLAGS(DIR_NODE, gpios)
 
-class GPIO {
-  const struct device *dev;
-  int pin = -1;
-  int ret = -1;
-  bool cur_value = false;
-
-public:
-  GPIO(const char *label, int _pin, int flags) {
-    LOG_MODULE_DECLARE(stepper);
-    pin = _pin;
-    dev = device_get_binding(label);
-    if (dev != NULL) {
-      ret = gpio_pin_configure(dev, pin, GPIO_OUTPUT_ACTIVE | flags);
-      if (ret != 0) {
-        LOG_ERR("Failed to configure %s pin %i", label, pin);
-      }
-    } else {
-      LOG_ERR("Failed to get device %s", label);
-    }
-  };
-  void set(bool value) {
-    LOG_MODULE_DECLARE(stepper);
-    if (ret == 0) {
-      if (value != cur_value) {
-        cur_value = value;
-
-        gpio_pin_set(dev, pin, value);
-      }
-    } else {
-      LOG_WRN("Do nothing, since ret=%i", ret);
-    }
-  };
-};
-
-class LED : public GPIO {
-public:
-  LED(const char *label, int _pin, int flags) : GPIO(label, _pin, flags) {
-    set(true);
-    k_msleep(100);
-    set(false);
-  };
-};
-
 class PULSE : public GPIO {
 public:
   PULSE(const char *label, int _pin, int flags) : GPIO(label, _pin, flags){};
@@ -97,11 +57,13 @@ public:
 class Stepper {
   struct k_sem *threadStepper_sem;
   struct k_sem *is_moving_sem;
-  int pos = 0;
-  int target_pos = 0;
+
   lv_obj_t *label;
   lv_obj_t *target_label;
+
   int sleep_msec = 1;
+  int pos = 0;
+  int target_pos = 0;
   bool current_to_left = true;
 
   LED led0 = LED(LED0_LABEL, LED0_PIN, LED0_FLAGS);
@@ -110,6 +72,9 @@ class Stepper {
   PULSE pulse = PULSE(PULSE_LABEL, PULSE_PIN, PULSE_FLAGS);
   GPIO dir = GPIO(DIR_LABEL, DIR_PIN, DIR_FLAGS);
 
+  void fill_nav_panel(Display *display, lv_obj_t *panel);
+  void init_coarse_tab(Display *display, lv_obj_t *parent);
+
   void set_dir(bool to_left);
   void step(bool to_left);
   bool is_in_pos();
@@ -117,8 +82,7 @@ class Stepper {
   void print_to_label();
 
 public:
-  Stepper(struct k_sem *_threadStepper_sem, lv_obj_t *_label,
-          lv_obj_t *_target_label);
+  Stepper(struct k_sem *_threadStepper_sem, Display *display);
   void loop();
   int go(int relative);
   void wait();
