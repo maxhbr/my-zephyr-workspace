@@ -14,7 +14,7 @@
 
 class Model {
   Stepper *stepper;
-  int target_position = 1000;
+  int target_position = 0;
 
 public:
   Model(Stepper *_stepper) { stepper = _stepper; };

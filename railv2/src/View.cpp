@@ -10,10 +10,6 @@ static void static_event_cb(lv_obj_t *obj, lv_event_t event) {
 View::View(Model *_model, Controller *_controller, Display *_display)
     : model{_model}, controller(_controller), display{_display} {
   LOG_MODULE_DECLARE(view);
-  LOG_INF("model = %p", &model);
-  LOG_INF("controller = %p", &controller);
-  LOG_INF("_model = %p", &_model);
-  LOG_INF("_controller = %p", &_controller);
   static_view_pointer = this;
 
   lv_obj_t *coarse_tab = display->make_tab("coarse");
