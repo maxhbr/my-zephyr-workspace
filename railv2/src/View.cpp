@@ -56,11 +56,6 @@ void View::fill_nav_panel(lv_obj_t *panel) {
   lv_obj_align(r_right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -5, 15);
   register_button_to_dist(r_right_btn, 12800);
 
-  //   lv_obj_t *slider = lv_slider_create(panel, NULL);
-  //   lv_obj_align(slider, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
-  //   lv_slider_set_range(slider, 0, 100);
-  //   lv_slider_set_value(slider, 50, 0);
-  //   // lv_obj_set_width(slider, LV_PCT(95))
 }
 
 void View::fill_coarse_panel(lv_obj_t *parent) {
@@ -69,6 +64,12 @@ void View::fill_coarse_panel(lv_obj_t *parent) {
   lv_obj_set_height(panel_nav, 90);
   lv_obj_set_width(panel_nav, 300);
   fill_nav_panel(panel_nav);
+
+  lv_obj_t *slider = lv_slider_create(parent, NULL);
+  lv_obj_align(slider, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
+  lv_slider_set_range(slider, 0, 100);
+  lv_slider_set_value(slider, 50, 0);
+  // lv_obj_set_width(slider, LV_PCT(95))
 
   lv_obj_t *header = lv_obj_create(parent, NULL);
   lv_obj_align(header, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
