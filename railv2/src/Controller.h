@@ -13,13 +13,18 @@
 #include <drivers/display.h>
 #include <lvgl.h>
 
+#include <logging/log.h>
+
 #include "Model.h"
 
 class Controller {
   Model model;
 
 public:
-  Controller(Model _model) : model{_model} {};
+  Controller(Model _model) : model{_model} {
+    LOG_MODULE_DECLARE(controller);
+    LOG_INF("model = %p", &model);
+  };
 
   void go(int dist);
   void work();

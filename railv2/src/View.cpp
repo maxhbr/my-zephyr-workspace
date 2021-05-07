@@ -7,12 +7,13 @@ static void static_event_cb(lv_obj_t *obj, lv_event_t event) {
   static_view_pointer->event_cb(obj, event);
 }
 
-void view_update_task(lv_task_t *task) {
-  View *view = static_cast<View *>(task->user_data);
-  view->update();
-}
 View::View(Model _model, Controller _controller, Display *_display)
-    : model{_model}, controller{_controller}, display{_display} {
+    : model{_model}, controller(_controller), display{_display} {
+  LOG_MODULE_DECLARE(view);
+  LOG_INF("model = %p", &model);
+  LOG_INF("controller = %p", &controller);
+  LOG_INF("_model = %p", &_model);
+  LOG_INF("_controller = %p", &_controller);
   static_view_pointer = this;
 
   lv_obj_t *coarse_tab = display->make_tab("coarse");
@@ -20,18 +21,24 @@ View::View(Model _model, Controller _controller, Display *_display)
   display->make_tab("fine");
   display->make_tab("go");
 
-  lv_task_t *task =
-      lv_task_create(view_update_task, 50, LV_TASK_PRIO_MID, this);
+  lv_task_t *task = lv_task_create(
+      [](lv_task_t *task) {
+        View *view = static_cast<View *>(task->user_data);
+        view->update();
+      },
+      100, LV_TASK_PRIO_MID, this);
 };
 
 void View::event_cb(lv_obj_t *obj, lv_event_t event) {
   LOG_MODULE_DECLARE(view);
-  if (event != LV_EVENT_PRESSED) {
+  if (!(event == LV_EVENT_PRESSED || event == LV_EVENT_LONG_PRESSED ||
+        event == LV_EVENT_LONG_PRESSED_REPEAT)) {
     return;
   }
   int dist = button_to_dist.at(obj);
   LOG_INF("go: %i\n", dist);
   controller.go(dist);
+  LOG_INF("target: %i\n", model.get_target_position());
 }
 
 void View::register_button_to_dist(lv_obj_t *btn, int dist) {

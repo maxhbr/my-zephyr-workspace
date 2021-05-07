@@ -49,23 +49,26 @@ Stepper get_stepper() {
 /* scheduling priority used by each thread */
 #define PRIORITY 7
 
-// K_THREAD_STACK_DEFINE(thread_controller_stack_area, STACKSIZE);
-// static struct k_thread thread_controller_data;
-// void thread_controller(void *_controller, void *dummy2, void *dummy3) {
-//   ARG_UNUSED(dummy2);
-//   ARG_UNUSED(dummy3);
-//   Controller *controller = static_cast<Controller *>(_controller);
-//   controller->iterate();
-// }
+K_THREAD_STACK_DEFINE(thread_controller_stack_area, STACKSIZE);
+static struct k_thread thread_controller_data;
+void thread_controller(void *_controller, void *dummy2, void *dummy3) {
+  ARG_UNUSED(dummy2);
+  ARG_UNUSED(dummy3);
+  Controller *controller = static_cast<Controller *>(_controller);
+  while (true) {
+    controller->work();
+    k_sleep(K_MSEC(10));
+  }
+}
 
-// void start_controller_thread(Controller *controller) {
-//   k_tid_t my_tid_controller = k_thread_create(
-//       &thread_controller_data, thread_controller_stack_area,
-//       K_THREAD_STACK_SIZEOF(thread_controller_stack_area), thread_controller,
-//       controller, NULL, NULL, PRIORITY, 0, K_NO_WAIT);
-//   k_thread_name_set(&thread_controller_data, "thread_controller");
-//   k_thread_start(&thread_controller_data);
-// }
+void start_controller_thread(Controller *controller) {
+  k_tid_t my_tid_controller = k_thread_create(
+      &thread_controller_data, thread_controller_stack_area,
+      K_THREAD_STACK_SIZEOF(thread_controller_stack_area), thread_controller,
+      controller, NULL, NULL, PRIORITY, 0, K_NO_WAIT);
+  k_thread_name_set(&thread_controller_data, "thread_controller");
+  k_thread_start(&thread_controller_data);
+}
 
 void main(void) {
   Display display = get_display();
@@ -74,12 +77,13 @@ void main(void) {
   Model model(&stepper);
   Controller controller(model);
   View view(model, controller, &display);
-  int i=0;
+  LOG_INF("model = %p", &model);
+  LOG_INF("controller = %p", &controller);
+  LOG_INF("view = %p", &view);
+
+  start_controller_thread(&controller);
   while (true) {
-    controller.work();
-    if ((++i) % 10 == 0) {
-      lv_task_handler();
-    }
-    // k_sleep(K_MSEC(10));
+    lv_task_handler();
+    k_sleep(K_MSEC(100));
   }
 }
