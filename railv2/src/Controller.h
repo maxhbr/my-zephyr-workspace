@@ -16,14 +16,13 @@
 #include "Model.h"
 
 class Controller {
-  Model *model;
+  Model model;
 
 public:
-  Controller(Model *_model) { model = _model; };
-  void start_threads();
+  Controller(Model _model) : model{_model} {};
 
   void go(int dist);
-  void iterate();
+  void work();
 };
 
 #endif // __CONTROLLER_H_

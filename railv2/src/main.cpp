@@ -31,13 +31,6 @@ LOG_MODULE_REGISTER(rail);
 #include "Stepper.h"
 #include "View.h"
 
-/* size of stack area used by each thread */
-#define STACKSIZE 8192
-/* scheduling priority used by each thread */
-#define PRIORITY 7
-/* delay between updates (in ms) */
-#define SLEEPTIME 500
-
 Display get_display() {
   const struct device *display_dev =
       device_get_binding(CONFIG_LVGL_DISPLAY_DEV_NAME);
@@ -55,28 +48,6 @@ Stepper get_stepper() {
 #define STACKSIZE 8192
 /* scheduling priority used by each thread */
 #define PRIORITY 7
-
-K_THREAD_STACK_DEFINE(thread_display_stack_area, STACKSIZE);
-static struct k_thread thread_display_data;
-void thread_display(void *_display, void *dummy2, void *dummy3) {
-  ARG_UNUSED(dummy2);
-  ARG_UNUSED(dummy3);
-  Display *display = static_cast<Display *>(_display);
-
-  while (true) {
-    lv_task_handler();
-    k_sleep(K_MSEC(100));
-  }
-}
-
-void start_display_thread(Display *display) {
-  k_tid_t my_tid_display = k_thread_create(
-      &thread_display_data, thread_display_stack_area,
-      K_THREAD_STACK_SIZEOF(thread_display_stack_area), thread_display, display,
-      NULL, NULL, PRIORITY, 0, K_NO_WAIT);
-  k_thread_name_set(&thread_display_data, "thread_display");
-  k_thread_start(&thread_display_data);
-}
 
 // K_THREAD_STACK_DEFINE(thread_controller_stack_area, STACKSIZE);
 // static struct k_thread thread_controller_data;
@@ -100,10 +71,15 @@ void main(void) {
   Display display = get_display();
   Stepper stepper = get_stepper();
 
-  View view(&display, &stepper);
-  // start_display_thread(&display);
+  Model model(&stepper);
+  Controller controller(model);
+  View view(model, controller, &display);
+  int i=0;
   while (true) {
-    lv_task_handler();
-    k_sleep(K_MSEC(100));
+    controller.work();
+    if ((++i) % 10 == 0) {
+      lv_task_handler();
+    }
+    // k_sleep(K_MSEC(10));
   }
 }

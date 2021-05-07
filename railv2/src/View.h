@@ -20,36 +20,17 @@
 #include "Model.h"
 #include "Stepper.h"
 
-class CurrentPositionView {
-private:
-  Model *model;
-  lv_obj_t *cur_pos_label = NULL;
-  lv_obj_t *target_pos_label = NULL;
-
-public:
-  CurrentPositionView();
-
-  void set_model(Model *_model) { model = _model; };
-  void set_cur_pos_label(lv_obj_t *_cur_pos_label) {
-    cur_pos_label = _cur_pos_label;
-  };
-  void set_target_pos_label(lv_obj_t *_target_pos_label) {
-    target_pos_label = _target_pos_label;
-  };
-
-  void update();
-};
-
 class View {
 private:
-  Model *model;
-  Controller *controller;
+  Model model;
+  Controller controller;
 
   // Devices
   Display *display;
 
-  // sub views
-  CurrentPositionView current_position_view;
+  // labels
+  lv_obj_t *cur_pos_label = NULL;
+  lv_obj_t *target_pos_label = NULL;
 
   // fields
   std::map<lv_obj_t *, int> button_to_dist;
@@ -60,8 +41,10 @@ private:
   void fill_coarse_panel(lv_obj_t *panel);
 
 public:
-  View(Display *_display, Stepper *_stepper);
+  View(Model model, Controller controller, Display *_display);
   void event_cb(lv_obj_t *obj, lv_event_t event);
+
+  void update();
 };
 
 #endif // __VIEW_H_
