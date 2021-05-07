@@ -22,8 +22,8 @@
 
 class View {
 private:
-  Model model;
-  Controller controller;
+  Model *model;
+  Controller *controller;
 
   // Devices
   Display *display;
@@ -41,7 +41,7 @@ private:
   void fill_coarse_panel(lv_obj_t *panel);
 
 public:
-  View(Model model, Controller controller, Display *_display);
+  View(Model *_model, Controller *_controller, Display *_display);
   void event_cb(lv_obj_t *obj, lv_event_t event);
 
   void update();

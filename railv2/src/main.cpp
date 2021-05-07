@@ -75,8 +75,8 @@ void main(void) {
   Stepper stepper = get_stepper();
 
   Model model(&stepper);
-  Controller controller(model);
-  View view(model, controller, &display);
+  Controller controller(&model);
+  View view(&model, &controller, &display);
   LOG_INF("model = %p", &model);
   LOG_INF("controller = %p", &controller);
   LOG_INF("view = %p", &view);

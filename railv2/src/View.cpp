@@ -7,7 +7,7 @@ static void static_event_cb(lv_obj_t *obj, lv_event_t event) {
   static_view_pointer->event_cb(obj, event);
 }
 
-View::View(Model _model, Controller _controller, Display *_display)
+View::View(Model *_model, Controller *_controller, Display *_display)
     : model{_model}, controller(_controller), display{_display} {
   LOG_MODULE_DECLARE(view);
   LOG_INF("model = %p", &model);
@@ -37,8 +37,8 @@ void View::event_cb(lv_obj_t *obj, lv_event_t event) {
   }
   int dist = button_to_dist.at(obj);
   LOG_INF("go: %i\n", dist);
-  controller.go(dist);
-  LOG_INF("target: %i\n", model.get_target_position());
+  controller->go(dist);
+  LOG_INF("target: %i\n", model->get_target_position());
 }
 
 void View::register_button_to_dist(lv_obj_t *btn, int dist) {
@@ -90,14 +90,14 @@ void View::update() {
   LOG_MODULE_DECLARE(view);
   if (cur_pos_label != NULL) {
     char cur_str[11] = {0};
-    sprintf(cur_str, "%d", model.get_cur_position());
+    sprintf(cur_str, "%d", model->get_cur_position());
     lv_label_set_text(cur_pos_label, cur_str);
   } else {
     LOG_WRN("cur_pos_label not yet initialized");
   }
   if (target_pos_label != NULL) {
     char target_str[11] = {0};
-    sprintf(target_str, "%d", model.get_target_position());
+    sprintf(target_str, "%d", model->get_target_position());
     lv_label_set_text(target_pos_label, target_str);
   } else {
     LOG_WRN("target_pos_label not yet initialized");
