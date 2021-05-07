@@ -51,14 +51,59 @@ Stepper get_stepper() {
   return stepper;
 }
 
+/* size of stack area used by each thread */
+#define STACKSIZE 8192
+/* scheduling priority used by each thread */
+#define PRIORITY 7
+
+K_THREAD_STACK_DEFINE(thread_display_stack_area, STACKSIZE);
+static struct k_thread thread_display_data;
+void thread_display(void *_display, void *dummy2, void *dummy3) {
+  ARG_UNUSED(dummy2);
+  ARG_UNUSED(dummy3);
+  Display *display = static_cast<Display *>(_display);
+
+  while (true) {
+    lv_task_handler();
+    k_sleep(K_MSEC(100));
+  }
+}
+
+void start_display_thread(Display *display) {
+  k_tid_t my_tid_display = k_thread_create(
+      &thread_display_data, thread_display_stack_area,
+      K_THREAD_STACK_SIZEOF(thread_display_stack_area), thread_display, display,
+      NULL, NULL, PRIORITY, 0, K_NO_WAIT);
+  k_thread_name_set(&thread_display_data, "thread_display");
+  k_thread_start(&thread_display_data);
+}
+
+// K_THREAD_STACK_DEFINE(thread_controller_stack_area, STACKSIZE);
+// static struct k_thread thread_controller_data;
+// void thread_controller(void *_controller, void *dummy2, void *dummy3) {
+//   ARG_UNUSED(dummy2);
+//   ARG_UNUSED(dummy3);
+//   Controller *controller = static_cast<Controller *>(_controller);
+//   controller->iterate();
+// }
+
+// void start_controller_thread(Controller *controller) {
+//   k_tid_t my_tid_controller = k_thread_create(
+//       &thread_controller_data, thread_controller_stack_area,
+//       K_THREAD_STACK_SIZEOF(thread_controller_stack_area), thread_controller,
+//       controller, NULL, NULL, PRIORITY, 0, K_NO_WAIT);
+//   k_thread_name_set(&thread_controller_data, "thread_controller");
+//   k_thread_start(&thread_controller_data);
+// }
+
 void main(void) {
   Display display = get_display();
   Stepper stepper = get_stepper();
 
   View view(&display, &stepper);
-
+  // start_display_thread(&display);
   while (true) {
-    display.update();
+    lv_task_handler();
     k_sleep(K_MSEC(100));
   }
 }

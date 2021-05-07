@@ -11,12 +11,16 @@
 #include <zephyr/types.h>
 
 class Stepper {
-  int pos = 0;
+  struct k_sem *stepper_sem;
+  int stepsize = 1;
+  int position = 0;
+
+  void set_direction(bool to_right);
 
 public:
-  Stepper(){
-
-  };
+  Stepper();
+  int get_position();
+  void step(bool to_right);
 };
 
 #endif // __STEPPER_H_
