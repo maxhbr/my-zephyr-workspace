@@ -12,10 +12,11 @@ View::View(Model *_model, Controller *_controller, Display *_display)
   LOG_MODULE_DECLARE(view);
   static_view_pointer = this;
 
-  lv_obj_t *coarse_tab = display->make_tab("coarse");
-  fill_coarse_panel(coarse_tab);
-  display->make_tab("fine");
-  display->make_tab("go");
+  lv_obj_t *move_tab = display->make_tab("move");
+  fill_move_panel(move_tab);
+  lv_obj_t *shoot_tab = display->make_tab("shoot");
+  lv_obj_t *debug_tab = display->make_tab("debug");
+  fill_debug_panel(debug_tab);
 
   lv_task_t *task = lv_task_create(
       [](lv_task_t *task) {
@@ -42,35 +43,46 @@ void View::register_button_to_dist(lv_obj_t *btn, int dist) {
   lv_obj_set_event_cb(btn, static_event_cb);
 };
 
-void View::fill_nav_panel(lv_obj_t *panel) {
-  lv_obj_t *l_left_btn = display->add_button(panel, "<<<", 60);
-  lv_obj_align(l_left_btn, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 15);
-  register_button_to_dist(l_left_btn, -12800);
-  lv_obj_t *left_btn = display->add_button(panel, "<<", 60);
-  lv_obj_align(left_btn, NULL, LV_ALIGN_IN_TOP_LEFT, 75, 15);
-  register_button_to_dist(left_btn, -1280);
-  lv_obj_t *right_btn = display->add_button(panel, ">>", 60);
-  lv_obj_align(right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -75, 15);
-  register_button_to_dist(right_btn, 1280);
-  lv_obj_t *r_right_btn = display->add_button(panel, ">>>", 60);
-  lv_obj_align(r_right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -5, 15);
-  register_button_to_dist(r_right_btn, 12800);
-
+void View::fill_nav_panel(lv_obj_t *panel, int base) {
+  lv_obj_t *l_left_btn = display->add_button(panel, "<<<", 60, 40);
+  lv_obj_align(l_left_btn, NULL, LV_ALIGN_IN_TOP_LEFT, 5, 10);
+  register_button_to_dist(l_left_btn, -10 * base);
+  lv_obj_t *left_btn = display->add_button(panel, "<<", 60, 40);
+  lv_obj_align(left_btn, NULL, LV_ALIGN_IN_TOP_LEFT, 75, 10);
+  register_button_to_dist(left_btn, -1 * base);
+  lv_obj_t *right_btn = display->add_button(panel, ">>", 60, 40);
+  lv_obj_align(right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -75, 10);
+  register_button_to_dist(right_btn, base);
+  lv_obj_t *r_right_btn = display->add_button(panel, ">>>", 60, 40);
+  lv_obj_align(r_right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -5, 10);
+  register_button_to_dist(r_right_btn, 10 * base);
 }
 
-void View::fill_coarse_panel(lv_obj_t *parent) {
-  lv_obj_t *panel_nav = display->add_panel(parent);
-  lv_obj_align(panel_nav, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 30);
-  lv_obj_set_height(panel_nav, 90);
-  lv_obj_set_width(panel_nav, 300);
-  fill_nav_panel(panel_nav);
+void View::fill_move_panel(lv_obj_t *parent) {
+  lv_obj_t *panel_coarse_nav = display->add_panel(parent);
+  lv_obj_align(panel_coarse_nav, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 5);
+  lv_obj_set_height(panel_coarse_nav, 60);
+  lv_obj_set_width(panel_coarse_nav, 300);
+  fill_nav_panel(panel_coarse_nav, 1280);
+  lv_obj_t *panel_fine_nav = display->add_panel(parent);
+  lv_obj_align(panel_fine_nav, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 75);
+  lv_obj_set_height(panel_fine_nav, 60);
+  lv_obj_set_width(panel_fine_nav, 300);
+  fill_nav_panel(panel_fine_nav, 10);
 
-  lv_obj_t *slider = lv_slider_create(parent, NULL);
-  lv_obj_align(slider, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
-  lv_slider_set_range(slider, 0, 100);
-  lv_slider_set_value(slider, 50, 0);
-  // lv_obj_set_width(slider, LV_PCT(95))
+  lv_obj_t *save_lower = display->add_button(parent, "Save lower", 130, 30);
+  lv_obj_align(save_lower, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 5, 10);
+  lv_obj_t *save_upper = display->add_button(parent, "Save upper", 130,30);
+  lv_obj_align(save_upper, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -5, -10);
 
+  // lv_obj_t *slider = lv_slider_create(parent, NULL);
+  // lv_obj_align(slider, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, -10);
+  // lv_slider_set_range(slider, 0, 100);
+  // lv_slider_set_value(slider, 50, 0);
+  // // lv_obj_set_width(slider, LV_PCT(95))
+}
+
+void View::fill_debug_panel(lv_obj_t *parent) {
   lv_obj_t *header = lv_obj_create(parent, NULL);
   lv_obj_align(header, NULL, LV_ALIGN_IN_TOP_LEFT, 0, 0);
   lv_obj_set_height(header, 20);

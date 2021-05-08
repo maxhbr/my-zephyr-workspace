@@ -17,8 +17,8 @@ void Display::init_styles() {
   lv_style_set_bg_opa(&style_box, LV_STATE_DEFAULT, LV_OPA_COVER);
 }
 
-void Display::init_tabview() {
-  tabview = lv_tabview_create(lv_scr_act(), NULL);
+void Display::init_tabview(lv_obj_t *parent) {
+  tabview = lv_tabview_create(parent, NULL);
   lv_obj_align(tabview, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
   lv_obj_add_style(tabview, 0, &style_normal);
 }
@@ -26,14 +26,10 @@ void Display::init_tabview() {
 Display::Display(const struct device *display_dev) {
   LOG_INF("initialize display...");
   init_styles();
-  init_tabview();
+  init_tabview(lv_scr_act());
   LOG_INF("...initialize display done");
-
-  update();
   display_blanking_off(display_dev);
 }
-
-void Display::update() { lv_task_handler(); }
 
 lv_obj_t *Display::make_tab(const char *title) {
   return lv_tabview_add_tab(tabview, title);
@@ -52,9 +48,9 @@ lv_obj_t *Display::add_panel(lv_obj_t *parent) {
 }
 
 lv_obj_t *Display::add_button(lv_obj_t *parent, const char *label_text,
-                              int width) {
+                              int width, int heigth) {
   lv_obj_t *btn = lv_btn_create(parent, NULL);
-  lv_obj_set_height(btn, 60);
+  lv_obj_set_height(btn, heigth);
   lv_obj_set_width(btn, width);
   lv_obj_add_style(btn, 0, &style_button);
   lv_obj_t *label = lv_label_create(btn, NULL);

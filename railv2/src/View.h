@@ -37,8 +37,9 @@ private:
 
   // init functions
   void register_button_to_dist(lv_obj_t *btn, int dist);
-  void fill_nav_panel(lv_obj_t *panel);
-  void fill_coarse_panel(lv_obj_t *panel);
+  void fill_nav_panel(lv_obj_t *panel, int divisor);
+  void fill_move_panel(lv_obj_t *parent);
+  void fill_debug_panel(lv_obj_t *parent);
 
 public:
   View(Model *_model, Controller *_controller, Display *_display);
