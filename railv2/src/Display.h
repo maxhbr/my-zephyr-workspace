@@ -7,8 +7,6 @@
 
 class Display {
   void init_styles();
-  lv_obj_t *tabview;
-  void init_tabview(lv_obj_t *parent);
   std::map<int, lv_obj_t *> index_to_tile;
   void init_tileview(lv_obj_t *parent);
 
@@ -24,13 +22,11 @@ public:
   lv_style_t style_button;
   lv_style_t style_box;
 
-  lv_obj_t *make_tab(const char *title);
-  lv_obj_t *get_tile(int index) {
-    return index_to_tile.at(index);
-  };
+  lv_obj_t *get_tile(int index) { return index_to_tile.at(index); };
   lv_obj_t *add_label(lv_obj_t *parent);
   lv_obj_t *add_panel(lv_obj_t *parent);
-  lv_obj_t *add_button(lv_obj_t *parent, const char *label_text, int width, int heigth);
+  lv_obj_t *add_button(lv_obj_t *parent, const char *label_text, int width,
+                       int heigth);
 };
 
 #endif // __DISPLAY_H_

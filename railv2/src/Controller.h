@@ -22,9 +22,16 @@ class Controller {
 
 public:
   Controller(Model *_model) : model{_model} {};
+  void work();
 
   void go(int dist);
-  void work();
+  void go_to(int target_position);
+  void go_to_upper_bound();
+  void go_to_lower_bound();
+  void set_new_upper_bound();
+  void set_new_lower_bound();
+
+  void do_stack(int step_number);
 };
 
 #endif // __CONTROLLER_H_

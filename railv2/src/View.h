@@ -29,21 +29,25 @@ private:
   Display *display;
 
   // labels
-  lv_obj_t *cur_pos_label = NULL;
-  lv_obj_t *target_pos_label = NULL;
+  lv_obj_t *pos_label = NULL;
+  lv_obj_t *lower_label = NULL;
+  lv_obj_t *upper_label = NULL;
+
+  lv_obj_t *step_number_roller = NULL;
 
   // fields
   std::map<lv_obj_t *, int> button_to_dist;
 
   // init functions
+  void register_button_cb(char action_type, lv_obj_t *btn);
   void register_button_to_dist(lv_obj_t *btn, int dist);
-  void fill_nav_panel(lv_obj_t *panel, int divisor);
+  void fill_nav_row(lv_obj_t *panel, int divisor);
   void fill_move_panel(lv_obj_t *parent);
-  void fill_debug_panel(lv_obj_t *parent);
+  void fill_shoot_panel(lv_obj_t *parent);
 
 public:
   View(Model *_model, Controller *_controller, Display *_display);
-  void event_cb(lv_obj_t *obj, lv_event_t event);
+  void event_cb(char action_type, lv_obj_t *obj, lv_event_t event);
 
   void update();
 };
