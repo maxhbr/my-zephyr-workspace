@@ -117,16 +117,24 @@ void View::fill_nav_row(lv_obj_t *panel, int base) {
 }
 
 void View::fill_move_panel(lv_obj_t *parent) {
-  lv_obj_t *row_coarse_nav = display->add_panel(parent);
-  lv_obj_align(row_coarse_nav, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 5);
-  lv_obj_set_height(row_coarse_nav, 60);
-  lv_obj_set_width(row_coarse_nav, 300);
-  fill_nav_row(row_coarse_nav, 1280);
-  lv_obj_t *row_fine_nav = display->add_panel(parent);
-  lv_obj_align(row_fine_nav, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 75);
-  lv_obj_set_height(row_fine_nav, 60);
-  lv_obj_set_width(row_fine_nav, 300);
-  fill_nav_row(row_fine_nav, 10);
+  lv_obj_t *left_btn = display->add_button(panel, "<<", 60, 60);
+  lv_obj_align(left_btn, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 10);
+  register_button_to_dist(left_btn, -1 * base);
+  lv_obj_t *right_btn = display->add_button(panel, ">>", 60, 60);
+  lv_obj_align(right_btn, NULL, LV_ALIGN_IN_TOP_RIGHT, -10, 10);
+  register_button_to_dist(right_btn, base);
+
+
+  // lv_obj_t *row_coarse_nav = display->add_panel(parent);
+  // lv_obj_align(row_coarse_nav, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 5);
+  // lv_obj_set_height(row_coarse_nav, 60);
+  // lv_obj_set_width(row_coarse_nav, 300);
+  // fill_nav_row(row_coarse_nav, 1280);
+  // lv_obj_t *row_fine_nav = display->add_panel(parent);
+  // lv_obj_align(row_fine_nav, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 75);
+  // lv_obj_set_height(row_fine_nav, 60);
+  // lv_obj_set_width(row_fine_nav, 300);
+  // fill_nav_row(row_fine_nav, 10);
 
   pos_label = display->add_label(parent);
   lv_obj_align(pos_label, NULL, LV_ALIGN_IN_TOP_MID, -100, 137);
