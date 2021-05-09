@@ -10,6 +10,8 @@
 #include <zephyr.h>
 #include <zephyr/types.h>
 
+#include <optional>
+
 #include "Stepper.h"
 
 class Model {
@@ -18,8 +20,13 @@ class Model {
   int upper_bound = 0;
   int lower_bound = 0;
 
+  int step_number = 0;
+  int cur_step_index = 0;
+  int stepps[1000] = {0};
+  bool stack_in_progress = false;
+
 public:
-  Model(Stepper *_stepper) { stepper = _stepper; };
+  Model(Stepper *_stepper);
 
   Stepper *get_stepper() { return stepper; };
   void go(int dist);
@@ -30,6 +37,11 @@ public:
   int get_upper_bound();
   void set_lower_bound(int _lower_bound);
   int get_lower_bound();
+
+  void set_step_number(int _step_number);
+  void set_step_position(int index, int pos);
+  std::optional<int> get_next_step_and_increment();
+  bool is_stack_in_progress();
 
   int get_cur_position();
   bool is_in_target_position();

@@ -2,6 +2,8 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(model);
 
+Model::Model(Stepper *_stepper) { stepper = _stepper; }
+
 void Model::go(int dist) {
   LOG_MODULE_DECLARE(model);
   target_position += dist;
@@ -16,6 +18,20 @@ void Model::set_upper_bound(int _upper_bound) { upper_bound = _upper_bound; }
 int Model::get_upper_bound() { return upper_bound; }
 void Model::set_lower_bound(int _lower_bound) { lower_bound = _lower_bound; }
 int Model::get_lower_bound() { return lower_bound; }
+
+void Model::set_step_number(int _step_number) {
+  step_number = _step_number;
+  cur_step_index = 0;
+}
+void Model::set_step_position(int index, int pos) { stepps[index] = pos; }
+std::optional<int> Model::get_next_step_and_increment() {
+  if (cur_step_index >= step_number) {
+    stack_in_progress = false;
+    return {};
+  }
+  return stepps[cur_step_index++];
+}
+bool Model::is_stack_in_progress() { return stack_in_progress; }
 
 int Model::get_cur_position() { return stepper->get_position(); }
 

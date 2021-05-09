@@ -19,9 +19,10 @@
 
 class Controller {
   Model *model;
+  struct k_sem *stacking_in_progress_sem;
 
 public:
-  Controller(Model *_model) : model{_model} {};
+  Controller(Model *_model);
   void work();
 
   void go(int dist);
@@ -31,7 +32,9 @@ public:
   void set_new_upper_bound();
   void set_new_lower_bound();
 
-  void do_stack(int step_number);
+  void synchronize_and_sleep(k_timeout_t timeout);
+  void prepare_stack(int step_number);
+  void do_next_stack_step();
 };
 
 #endif // __CONTROLLER_H_

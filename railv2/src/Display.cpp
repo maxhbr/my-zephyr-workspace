@@ -60,3 +60,11 @@ lv_obj_t *Display::add_button(lv_obj_t *parent, const char *label_text,
   }
   return btn;
 }
+
+lv_obj_t *Display::add_roller(lv_obj_t *parent, const char *options) {
+  lv_obj_t *roller = lv_roller_create(parent, NULL);
+  lv_roller_set_options(roller, options, LV_ROLLER_MODE_NORMAL);
+
+  lv_roller_set_visible_row_count(roller, 4);
+  return roller;
+}

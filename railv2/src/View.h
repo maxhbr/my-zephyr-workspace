@@ -33,15 +33,12 @@ private:
   lv_obj_t *lower_label = NULL;
   lv_obj_t *upper_label = NULL;
 
+  lv_obj_t *step_size_roller = NULL;
+  int read_step_size_roller();
   lv_obj_t *step_number_roller = NULL;
-
-  // fields
-  std::map<lv_obj_t *, int> button_to_dist;
+  int read_step_number_roller();
 
   // init functions
-  void register_button_cb(char action_type, lv_obj_t *btn);
-  void register_button_to_dist(lv_obj_t *btn, int dist);
-  void fill_nav_row(lv_obj_t *panel, int divisor);
   void fill_move_panel(lv_obj_t *parent);
   void fill_shoot_panel(lv_obj_t *parent);
 

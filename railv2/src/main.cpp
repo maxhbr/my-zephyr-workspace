@@ -57,6 +57,7 @@ void thread_controller(void *_controller, void *dummy2, void *dummy3) {
   Controller *controller = static_cast<Controller *>(_controller);
   while (true) {
     controller->work();
+    k_sleep(K_MSEC(0));
   }
 }
 
