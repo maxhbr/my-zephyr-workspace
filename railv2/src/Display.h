@@ -7,8 +7,8 @@
 
 class Display {
   void init_styles();
-  std::map<int, lv_obj_t *> index_to_tile;
-  void init_tileview(lv_obj_t *parent);
+  lv_obj_t *tabview;
+  void init_tabview(lv_obj_t *parent);
 
   const lv_font_t *font_title = &lv_font_montserrat_28;
   const lv_font_t *font_subtitle = &lv_font_montserrat_24;
@@ -22,7 +22,7 @@ public:
   lv_style_t style_button;
   lv_style_t style_box;
 
-  lv_obj_t *get_tile(int index) { return index_to_tile.at(index); };
+  lv_obj_t *make_tab(const char *title);
   lv_obj_t *add_label(lv_obj_t *parent);
   lv_obj_t *add_panel(lv_obj_t *parent);
   lv_obj_t *add_button(lv_obj_t *parent, const char *label_text, int width,

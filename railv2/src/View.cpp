@@ -16,10 +16,10 @@ View::View(Model *_model, Controller *_controller, Display *_display)
   LOG_MODULE_DECLARE(view);
   static_view_pointer = this;
 
-  lv_obj_t *move_tile = display->get_tile(0);
-  fill_move_panel(move_tile);
-  lv_obj_t *shoot_tile = display->get_tile(1);
-  fill_shoot_panel(shoot_tile);
+  lv_obj_t *move_tab = display->make_tab("move");
+  fill_move_panel(move_tab);
+  lv_obj_t *shoot_tab = display->make_tab("shoot");
+  fill_shoot_panel(shoot_tab);
 
   lv_task_t *task = lv_task_create(
       [](lv_task_t *task) {
