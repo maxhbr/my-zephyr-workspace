@@ -186,6 +186,12 @@ void View::fill_move_panel(lv_obj_t *parent) {
   // // lv_obj_set_width(slider, LV_PCT(95))
 }
 
+static const char *shoot_btnm_map[] = {"prepare stack", "\n",   "1step",
+                                       "start",         "stop", ""};
+
+static const char *btnm_map[] = {"1",  "2",  "3",       "4",       "5",
+                                 "\n", "6",  "7",       "8",       "9",
+                                 "0",  "\n", "Action1", "Action2", ""};
 void View::fill_shoot_panel(lv_obj_t *parent) {
   step_number_roller = display->add_roller(parent, "10\n"
                                                    "20\n"
@@ -199,27 +205,42 @@ void View::fill_shoot_panel(lv_obj_t *parent) {
   lv_obj_align(step_number_roller, NULL, LV_ALIGN_IN_LEFT_MID, 20, 0);
   lv_roller_set_selected(step_number_roller, 6, LV_ANIM_OFF);
 
-  lv_obj_t *stack_button = display->add_button(parent, "stack", 100, 100);
-  lv_obj_align(stack_button, NULL, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_event_cb(stack_button, [](lv_obj_t *btn, lv_event_t event) {
-    static_view_pointer->event_cb(ACTION_PREPARE_STACK, btn, event);
-  });
-  lv_obj_t *autostart_cb = lv_checkbox_create(parent, NULL);
-  lv_checkbox_set_text(autostart_cb, "autostart");
-  lv_obj_align(autostart_cb, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
-  lv_checkbox_set_checked(autostart_cb, true);
+  // lv_obj_t *btnm1 = lv_btnmatrix_create(parent, NULL);
+  // lv_btnmatrix_set_map(btnm1, shoot_btnm_map);
+  // // lv_btnmatrix_set_btn_width(btnm1, 10, 2);
+  // // lv_btnmatrix_set_btn_ctrl(btnm1, 10, LV_BTNMATRIX_CTRL_CHECKABLE);
+  // // lv_btnmatrix_set_btn_ctrl(btnm1, 11, LV_BTNMATRIX_CTRL_CHECK_STATE);
+  // lv_obj_align(btnm1, NULL, LV_ALIGN_IN_RIGHT_MID, 0, 0);
 
-  lv_obj_t *a_step_button = display->add_button(parent, "1step", 50, 50);
-  lv_obj_align(a_step_button, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 20);
+  lv_obj_t *btnm1 = lv_btnmatrix_create(parent, NULL);
+  lv_btnmatrix_set_map(btnm1, btnm_map);
+  lv_btnmatrix_set_btn_width(btnm1, 10,
+                             2); /*Make "Action1" twice as wide as "Action2"*/
+  lv_btnmatrix_set_btn_ctrl(btnm1, 10, LV_BTNMATRIX_CTRL_CHECKABLE);
+  lv_btnmatrix_set_btn_ctrl(btnm1, 11, LV_BTNMATRIX_CTRL_CHECK_STATE);
+  lv_obj_align(btnm1, NULL, LV_ALIGN_IN_RIGHT_MID, 0, 0);
 
-  lv_obj_t *start_button = display->add_button(parent, "start", 50, 50);
-  lv_obj_align(start_button, NULL, LV_ALIGN_IN_RIGHT_MID, -20, 0);
+  // lv_obj_t *stack_button = display->add_button(parent, "stack", 100, 100);
+  // lv_obj_align(stack_button, NULL, LV_ALIGN_CENTER, 0, 0);
+  // lv_obj_set_event_cb(stack_button, [](lv_obj_t *btn, lv_event_t event) {
+  //   static_view_pointer->event_cb(ACTION_PREPARE_STACK, btn, event);
+  // });
+  // lv_obj_t *autostart_cb = lv_checkbox_create(parent, NULL);
+  // lv_checkbox_set_text(autostart_cb, "autostart");
+  // lv_obj_align(autostart_cb, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+  // lv_checkbox_set_checked(autostart_cb, true);
 
-  lv_obj_t *stop_button = display->add_button(parent, "stop", 50, 50);
-  lv_obj_align(stop_button, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -20, -20);
-  lv_obj_set_event_cb(stop_button, [](lv_obj_t *btn, lv_event_t event) {
-    static_view_pointer->event_cb(ACTION_STOP_STACK, btn, event);
-  });
+  // lv_obj_t *a_step_button = display->add_button(parent, "1step", 50, 50);
+  // lv_obj_align(a_step_button, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 20);
+
+  // lv_obj_t *start_button = display->add_button(parent, "start", 50, 50);
+  // lv_obj_align(start_button, NULL, LV_ALIGN_IN_RIGHT_MID, -20, 0);
+
+  // lv_obj_t *stop_button = display->add_button(parent, "stop", 50, 50);
+  // lv_obj_align(stop_button, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -20, -20);
+  // lv_obj_set_event_cb(stop_button, [](lv_obj_t *btn, lv_event_t event) {
+  //   static_view_pointer->event_cb(ACTION_STOP_STACK, btn, event);
+  // });
 }
 
 void View::update() {
