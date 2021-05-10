@@ -31,6 +31,9 @@ std::optional<int> Model::get_next_step_and_increment() {
   }
   return stepps[cur_step_index++];
 }
+void Model::set_stack_in_progress(bool _stack_in_progress) {
+  stack_in_progress = _stack_in_progress;
+}
 bool Model::is_stack_in_progress() { return stack_in_progress; }
 
 int Model::get_cur_position() { return stepper->get_position(); }

@@ -9,6 +9,7 @@ LOG_MODULE_REGISTER(view);
 #define ACTION_SET_UPPER 'u'
 #define ACTION_GO_TO_UPPER 'U'
 #define ACTION_PREPARE_STACK 's'
+#define ACTION_STOP_STACK 'S'
 
 static View *static_view_pointer = NULL;
 
@@ -16,6 +17,9 @@ View::View(Model *_model, Controller *_controller, Display *_display)
     : model{_model}, controller(_controller), display{_display} {
   LOG_MODULE_DECLARE(view);
   static_view_pointer = this;
+
+  pos_label = display->add_label(display->get_header());
+  lv_label_set_align(pos_label, LV_LABEL_ALIGN_CENTER);
 
   lv_obj_t *move_tab = display->make_tab("move");
   fill_move_panel(move_tab);
@@ -55,6 +59,8 @@ void View::event_cb(char action_type, lv_obj_t *obj, lv_event_t event) {
     return;
   }
 
+  LOG_DBG("event_cb with: %c\n", action_type);
+
   switch (action_type) {
   case ACTION_PREPARE_STACK: {
     if (!(event == LV_EVENT_PRESSED)) {
@@ -63,6 +69,13 @@ void View::event_cb(char action_type, lv_obj_t *obj, lv_event_t event) {
     int step_number = read_step_number_roller();
     LOG_INF("prepare_stack: %d\n", step_number);
     controller->prepare_stack(step_number);
+    break;
+  }
+  case ACTION_STOP_STACK: {
+    if (!(event == LV_EVENT_LONG_PRESSED)) {
+      return;
+    }
+    controller->stop_stack();
     break;
   }
   case ACTION_GO_LOWER: {
@@ -139,12 +152,6 @@ void View::fill_move_panel(lv_obj_t *parent) {
     static_view_pointer->event_cb(ACTION_GO_UPPER, btn, event);
   });
 
-  pos_label = display->add_label(parent);
-  lv_obj_align(pos_label, NULL, LV_ALIGN_IN_BOTTOM_MID, -100, -10);
-  lv_obj_set_width(pos_label, 200);
-  lv_obj_set_height(pos_label, 20);
-  lv_label_set_align(pos_label, LV_LABEL_ALIGN_CENTER);
-
   lv_obj_t *set_lower = display->add_button(parent, "Set lower", 100, 30);
   lv_obj_align(set_lower, NULL, LV_ALIGN_IN_TOP_LEFT, 10, 75);
   lv_obj_set_event_cb(set_lower, [](lv_obj_t *btn, lv_event_t event) {
@@ -190,11 +197,28 @@ void View::fill_shoot_panel(lv_obj_t *parent) {
                                                    "500\n"
                                                    "1000");
   lv_obj_align(step_number_roller, NULL, LV_ALIGN_IN_LEFT_MID, 20, 0);
+  lv_roller_set_selected(step_number_roller, 6, LV_ANIM_OFF);
 
-  lv_obj_t *fire_button = display->add_button(parent, "fire", 100, 100);
-  lv_obj_align(fire_button, NULL, LV_ALIGN_CENTER, 0, 0);
-  lv_obj_set_event_cb(fire_button, [](lv_obj_t *btn, lv_event_t event) {
+  lv_obj_t *stack_button = display->add_button(parent, "stack", 100, 100);
+  lv_obj_align(stack_button, NULL, LV_ALIGN_CENTER, 0, 0);
+  lv_obj_set_event_cb(stack_button, [](lv_obj_t *btn, lv_event_t event) {
     static_view_pointer->event_cb(ACTION_PREPARE_STACK, btn, event);
+  });
+  lv_obj_t *autostart_cb = lv_checkbox_create(parent, NULL);
+  lv_checkbox_set_text(autostart_cb, "autostart");
+  lv_obj_align(autostart_cb, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
+  lv_checkbox_set_checked(autostart_cb, true);
+
+  lv_obj_t *a_step_button = display->add_button(parent, "1step", 50, 50);
+  lv_obj_align(a_step_button, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 20);
+
+  lv_obj_t *start_button = display->add_button(parent, "start", 50, 50);
+  lv_obj_align(start_button, NULL, LV_ALIGN_IN_RIGHT_MID, -20, 0);
+
+  lv_obj_t *stop_button = display->add_button(parent, "stop", 50, 50);
+  lv_obj_align(stop_button, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -20, -20);
+  lv_obj_set_event_cb(stop_button, [](lv_obj_t *btn, lv_event_t event) {
+    static_view_pointer->event_cb(ACTION_STOP_STACK, btn, event);
   });
 }
 
@@ -206,7 +230,7 @@ void View::update() {
     return;
   }
 
-  char str[25] = {0};
+  char str[40] = {0};
   int cur_position = model->get_cur_position();
   int target_position = model->get_target_position();
   if (cur_position == target_position) {
@@ -217,6 +241,12 @@ void View::update() {
     } else {
       sprintf(str, "%d < %d", target_position, cur_position);
     }
+  }
+  if (model->is_stack_in_progress()) {
+    char str2[45] = {0};
+    strcpy(str2, str);
+    sprintf(str, "%s | %d of %d", str2, model->get_cur_step_index(),
+            model->get_step_number());
   }
   lv_label_set_text(pos_label, str);
 }

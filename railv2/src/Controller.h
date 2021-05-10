@@ -19,7 +19,7 @@
 
 class Controller {
   Model *model;
-  struct k_sem *stacking_in_progress_sem;
+  struct k_sem *work_in_progress_sem;
 
 public:
   Controller(Model *_model);
@@ -34,6 +34,7 @@ public:
 
   void synchronize_and_sleep(k_timeout_t timeout);
   void prepare_stack(int step_number);
+  void stop_stack();
   void do_next_stack_step();
 };
 

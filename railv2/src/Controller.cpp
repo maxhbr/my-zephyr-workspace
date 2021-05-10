@@ -2,19 +2,23 @@
 #include <logging/log.h>
 LOG_MODULE_REGISTER(controller);
 
-K_SEM_DEFINE(_stacking_in_progress_sem, 1, 1);
+K_SEM_DEFINE(_work_in_progress_sem, 1, 1);
 Controller::Controller(Model *_model) : model{_model} {
-  stacking_in_progress_sem = &_stacking_in_progress_sem;
+  work_in_progress_sem = &_work_in_progress_sem;
 }
 
 void Controller::work() {
-  if (!model->is_stack_in_progress()) {
-    do_next_stack_step();
+  if (k_sem_take(work_in_progress_sem, K_MSEC(50)) != 0) {
+    return;
   }
   if (!model->is_in_target_position()) {
     int target_position = model->get_target_position();
     model->get_stepper()->step_towards(target_position);
   }
+  if (model->is_stack_in_progress()) {
+    do_next_stack_step();
+  }
+  k_sem_give(work_in_progress_sem);
 }
 
 void Controller::go(int dist) { model->go(dist); }
@@ -61,6 +65,10 @@ void Controller::prepare_stack(int step_number) {
 
   distance = stop - start;
   stack_step_jump = distance / step_number;
+  if (stack_step_jump == 0) {
+    LOG_WRN("step_jump of 0\n");
+    return;
+  }
   int i;
   for (i = 0; i < (step_number - 1); i++) {
     model->set_step_position(i, start + i * stack_step_jump);
@@ -68,6 +76,14 @@ void Controller::prepare_stack(int step_number) {
   model->set_step_position(step_number - 1, stop);
 
   model->set_step_number(step_number);
+
+  model->set_stack_in_progress(true);
+}
+
+void Controller::stop_stack() {
+  LOG_INF("stop_stack\n");
+  model->set_step_number(0);
+  model->set_stack_in_progress(false);
 }
 
 void Controller::do_next_stack_step() {
@@ -79,11 +95,12 @@ void Controller::do_next_stack_step() {
     return;
   }
 
+  k_sleep(K_MSEC(2000));
+
   std::optional<int> nex_position = model->get_next_step_and_increment();
   if (!nex_position.has_value()) {
     return;
   }
 
   go_to(nex_position.value());
-  synchronize_and_sleep(K_MSEC(2000));
 }

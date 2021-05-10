@@ -17,19 +17,31 @@ void Display::init_styles() {
   lv_style_set_bg_opa(&style_box, LV_STATE_DEFAULT, LV_OPA_COVER);
 }
 
+void Display::init_header(lv_obj_t *parent) {
+  header = lv_cont_create(parent, NULL);
+  lv_obj_set_size(header, LV_HOR_RES, 25);
+  lv_cont_set_fit(header, LV_FIT_TIGHT);
+  lv_cont_set_layout(header, LV_LAYOUT_COLUMN_MID);
+  lv_obj_align(header, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
+}
+
 void Display::init_tabview(lv_obj_t *parent) {
   tabview = lv_tabview_create(parent, NULL);
-  lv_obj_align(tabview, NULL, LV_ALIGN_IN_BOTTOM_LEFT, 0, 0);
+  lv_obj_set_size(tabview, LV_HOR_RES, LV_VER_RES - 15);
   lv_obj_add_style(tabview, 0, &style_normal);
+  lv_obj_align(tabview, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
 }
 
 Display::Display(const struct device *display_dev) {
   LOG_INF("initialize display...");
   init_styles();
   init_tabview(lv_scr_act());
+  init_header(lv_scr_act());
   LOG_INF("...initialize display done");
   display_blanking_off(display_dev);
 }
+
+lv_obj_t *Display::get_header() { return header; }
 
 lv_obj_t *Display::make_tab(const char *title) {
   return lv_tabview_add_tab(tabview, title);
