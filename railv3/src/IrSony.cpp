@@ -249,46 +249,59 @@ const int top = 24;    // 1000000/25 = 40kHz
 const int match = 18;  // pulses with approx 25% mark/space ratio
 
 // Remote control
-const int address = 0x1E3A;
 const int shutter_code = 0x2D;
 const int two_secs_code = 0x37;
 const int video_code = 0x48;
 
+const int BASE = 610;
+const int ZERO_TIME = BASE;
+const int ONE_TIME = BASE*2;
+const int START_TIME = BASE*4;
 
-void IrSony::send_pulse(int carrier, int gap) {
-//   int ret = pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
-//                PERIOD_USEC, PULSE_USEC, PWM_IR_FLAGS);
-//    if (ret < 0) {
-//       LOG_ERR("Error %d: failed to set pulse width\n", ret);
-//       return;
-//    }
+K_TIMER_DEFINE(my_sync_timer, NULL, NULL);
+
+void IrSony::send_pulse(int duration) {
+   if (pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
+               PERIOD_USEC, PULSE_USEC, PWM_IR_FLAGS) < 0) {
+      LOG_ERR("failed to start carrier");
+      return;
+   }
+   k_busy_wait(duration);
+   if (pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
+               PERIOD_USEC, 0, PWM_IR_FLAGS) < 0) {
+      LOG_ERR("failed to stop carrier");
+      return;
+   }
+   k_busy_wait(BASE);
 }
+
 
 void IrSony::send_start() {
   LOG_MODULE_DECLARE(irsony);
-  LOG_INF("start");
-   send_pulse(96, 24);
+   send_pulse(START_TIME);
 }
 void IrSony::send_bit(bool is_one) {
   LOG_MODULE_DECLARE(irsony);
-  LOG_INF("send %d", is_one);
    if (is_one) {
-      send_pulse(48, 24);
+      send_pulse(ONE_TIME);
    } else {
-      send_pulse(24, 24);
+      send_pulse(ZERO_TIME);
    }
 }
 void IrSony::send_code(unsigned long code) {
    send_start();
   // Send 20 bits
   for (int bit=0; bit<20; bit++) {
-     send_bit(code & ((unsigned long) 1<<bit) != 0);
+     send_bit(code & ((unsigned long) 1<<bit));
   }
 }
 void IrSony::send_command(int command) {
+  int address = 0x1E3A;
+  LOG_MODULE_DECLARE(irsony);
    unsigned long code = (unsigned long) address<<7 | command;
+  LOG_INF("send command=0x%08x code=0x%08x", command, code);
    send_code(code);
-   k_sleep(K_MSEC(11));
+   k_busy_wait(11000));
    send_code(code);
 }
 
@@ -327,26 +340,20 @@ void IrSony::send_command(int command) {
 IrSony::IrSony() {
   LOG_MODULE_DECLARE(irsony);
 
-   LOG_INF("Calibrating for channel %d...\n", PWM_IR_CHANNEL);
-	max_period = MAX_PERIOD_USEC;
-	while (pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
-				max_period, max_period / 2U, PWM_IR_FLAGS)) {
-		max_period /= 2U;
-		if (max_period < (4U * MIN_PERIOD_USEC)) {
-			LOG_ERR("Error: PWM device "
-			       "does not support a period at least %u",
-			       4U * MIN_PERIOD_USEC);
-			return;
-		}
-	}
-
+   // if (pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
+   //             PERIOD_USEC, PULSE_USEC, PWM_IR_FLAGS) < 0) {
+   //    LOG_ERR("failed to start carrier");
+   //    return;
+   // }
+   // k_sleep(K_MSEC(100));
    if (pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
-               PERIOD_USEC, PULSE_USEC, PWM_IR_FLAGS) < 0) {
-      LOG_ERR("failed to set pulse width");
+               PERIOD_USEC, 0, PWM_IR_FLAGS) < 0) {
+      LOG_ERR("failed to stop carrier");
       return;
    }
 }
 
 void IrSony::shoot() {
   LOG_MODULE_DECLARE(irsony);
+  send_command(shutter_code);
 }

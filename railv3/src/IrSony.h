@@ -23,14 +23,14 @@
 #define MIN_PERIOD_USEC	(USEC_PER_SEC / 64U)
 #define MAX_PERIOD_USEC	USEC_PER_SEC
 
-#define PERIOD_USEC	(USEC_PER_SEC / 38000U)
+#define PERIOD_USEC	(USEC_PER_SEC / 40000U)
 #define PULSE_USEC	(PERIOD_USEC / 2)
 
 class IrSony{
   const struct device *pwm = DEVICE_DT_GET(PWM_IR_CTLR);
   	uint32_t max_period = MAX_PERIOD_USEC;
 
-void send_pulse(int carrier, int gap);
+void send_pulse(int duration);
   void send_start();
   void send_bit(bool is_one);
   void send_code(unsigned long code);

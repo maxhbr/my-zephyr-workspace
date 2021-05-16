@@ -30,6 +30,8 @@ LOG_MODULE_REGISTER(rail);
 #include "StepperWithTarget.h"
 #include "IrSony.h"
 
+#define SW0_NODE	DT_ALIAS(sw0)
+
 // ############################################################################
 // initialize Stepper
 
@@ -49,15 +51,37 @@ void start_stepper() {
 IrSony irsony;
 
 // ############################################################################
+// initialize Button
+#define SW0_GPIO_LABEL	DT_GPIO_LABEL(SW0_NODE, gpios)
+#define SW0_GPIO_PIN	DT_GPIO_PIN(SW0_NODE, gpios)
+#define SW0_GPIO_FLAGS	(GPIO_INPUT | DT_GPIO_FLAGS(SW0_NODE, gpios))
+static struct gpio_callback button_cb_data;
+void button_pressed(const struct device *dev, struct gpio_callback *cb,
+		    uint32_t pins)
+{
+	printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+  irsony.shoot();
+}
+
+// ############################################################################
 // Main
 
 void main(void) {
   start_stepper();
   LOG_INF("stepper = %p", &stepper);
 
+  button = device_get_binding(SW0_GPIO_LABEL);
+  gpio_pin_configure(button, SW0_GPIO_PIN, SW0_GPIO_FLAGS);
+  gpio_pin_interrupt_configure(button,
+					   SW0_GPIO_PIN,
+					   GPIO_INT_EDGE_TO_ACTIVE);
+  gpio_init_callback(&button_cb_data, button_pressed, BIT(SW0_GPIO_PIN));
+	gpio_add_callback(button, &button_cb_data)
+
+    k_sleep(K_MSEC(2000));
+
   while (true) {
     lv_task_handler();
-    irsony.shoot();
     k_sleep(K_MSEC(100));
   }
 }
