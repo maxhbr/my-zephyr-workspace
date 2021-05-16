@@ -75,11 +75,7 @@ arduino_spi: &spi1 {};
 
     pwm13: pwm {
         status = "okay";
+		st,prescaler = < 2 >;
         pinctrl-0 = <&tim13_ch1_pf8>; /* D61 */
     };
 };
-
-
-//&sw_pwm {
-//	clock-prescaler = <3>;
-//};

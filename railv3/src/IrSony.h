@@ -16,24 +16,25 @@
 #include "GPIOs.h"
 
 #define PWM_IR_NODE DT_ALIAS(pwmir)
-#define PWM_IR_CTLR	DT_PWMS_CTLR(PWM_IR_NODE)
-#define PWM_IR_CHANNEL	DT_PWMS_CHANNEL(PWM_IR_NODE)
-#define PWM_IR_FLAGS	DT_PWMS_FLAGS(PWM_IR_NODE)
+#define PWM_IR_CTLR DT_PWMS_CTLR(PWM_IR_NODE)
+#define PWM_IR_CHANNEL DT_PWMS_CHANNEL(PWM_IR_NODE)
+#define PWM_IR_FLAGS DT_PWMS_FLAGS(PWM_IR_NODE)
 
-/*
- * Unlike pulse width, the PWM period is not a critical parameter for
- * motor control. 20 ms is commonly used.
- */
-#define PERIOD_USEC	(20U * USEC_PER_MSEC)
-#define STEP_USEC	100
-#define MIN_PULSE_USEC	700
-#define MAX_PULSE_USEC	2300
 #define MIN_PERIOD_USEC	(USEC_PER_SEC / 64U)
 #define MAX_PERIOD_USEC	USEC_PER_SEC
+
+#define PERIOD_USEC	(USEC_PER_SEC / 38000U)
+#define PULSE_USEC	(PERIOD_USEC / 2)
 
 class IrSony{
   const struct device *pwm = DEVICE_DT_GET(PWM_IR_CTLR);
   	uint32_t max_period = MAX_PERIOD_USEC;
+
+void send_pulse(int carrier, int gap);
+  void send_start();
+  void send_bit(bool is_one);
+  void send_code(unsigned long code);
+  void send_command(int command);
 public:
   IrSony(); 
   void shoot();

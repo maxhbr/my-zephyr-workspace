@@ -1,5 +1,18 @@
 #include "IrSony.h"
 
+/* 
+   contains parts from:
+
+   ATtiny85 Sony NEX/Alpha Remote Control
+
+   David Johnson-Davies - www.technoblogy.com - 12th April 2015
+   ATtiny85 @ 1 MHz (internal oscillator; BOD disabled)
+   
+   CC BY 4.0
+   Licensed under a Creative Commons Attribution 4.0 International license: 
+   http://creativecommons.org/licenses/by/4.0/
+*/
+
 #include <logging/log.h>
 LOG_MODULE_REGISTER(irsony);
 
@@ -232,23 +245,52 @@ LOG_MODULE_REGISTER(irsony);
 //   } 
 // }
 
-/* ATtiny85 Sony NEX/Alpha Remote Control
+const int top = 24;    // 1000000/25 = 40kHz
+const int match = 18;  // pulses with approx 25% mark/space ratio
 
-   David Johnson-Davies - www.technoblogy.com - 12th April 2015
-   ATtiny85 @ 1 MHz (internal oscillator; BOD disabled)
-   
-   CC BY 4.0
-   Licensed under a Creative Commons Attribution 4.0 International license: 
-   http://creativecommons.org/licenses/by/4.0/
-*/
-// const int top = 24;    // 1000000/25 = 40kHz
-// const int match = 18;  // pulses with approx 25% mark/space ratio
+// Remote control
+const int address = 0x1E3A;
+const int shutter_code = 0x2D;
+const int two_secs_code = 0x37;
+const int video_code = 0x48;
 
-// // Remote control
-// const int Address = 0x1E3A;
-// const int ShutterCode = 0x2D;
-// const int TwoSecsCode = 0x37;
-// const int VideoCode = 0x48;
+
+void IrSony::send_pulse(int carrier, int gap) {
+//   int ret = pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
+//                PERIOD_USEC, PULSE_USEC, PWM_IR_FLAGS);
+//    if (ret < 0) {
+//       LOG_ERR("Error %d: failed to set pulse width\n", ret);
+//       return;
+//    }
+}
+
+void IrSony::send_start() {
+  LOG_MODULE_DECLARE(irsony);
+  LOG_INF("start");
+   send_pulse(96, 24);
+}
+void IrSony::send_bit(bool is_one) {
+  LOG_MODULE_DECLARE(irsony);
+  LOG_INF("send %d", is_one);
+   if (is_one) {
+      send_pulse(48, 24);
+   } else {
+      send_pulse(24, 24);
+   }
+}
+void IrSony::send_code(unsigned long code) {
+   send_start();
+  // Send 20 bits
+  for (int bit=0; bit<20; bit++) {
+     send_bit(code & ((unsigned long) 1<<bit) != 0);
+  }
+}
+void IrSony::send_command(int command) {
+   unsigned long code = (unsigned long) address<<7 | command;
+   send_code(code);
+   k_sleep(K_MSEC(11));
+   send_code(code);
+}
 
 // void Pulse (int carrier, int gap) {
 //   int count = carrier;
@@ -284,6 +326,7 @@ LOG_MODULE_REGISTER(irsony);
 
 IrSony::IrSony() {
   LOG_MODULE_DECLARE(irsony);
+
    LOG_INF("Calibrating for channel %d...\n", PWM_IR_CHANNEL);
 	max_period = MAX_PERIOD_USEC;
 	while (pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
@@ -291,20 +334,19 @@ IrSony::IrSony() {
 		max_period /= 2U;
 		if (max_period < (4U * MIN_PERIOD_USEC)) {
 			LOG_ERR("Error: PWM device "
-			       "does not support a period at least %u\n",
+			       "does not support a period at least %u",
 			       4U * MIN_PERIOD_USEC);
 			return;
 		}
 	}
+
+   if (pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
+               PERIOD_USEC, PULSE_USEC, PWM_IR_FLAGS) < 0) {
+      LOG_ERR("failed to set pulse width");
+      return;
+   }
 }
 
 void IrSony::shoot() {
   LOG_MODULE_DECLARE(irsony);
-  uint32_t pulse_width = MIN_PULSE_USEC;
-  int ret = pwm_pin_set_usec(pwm, PWM_IR_CHANNEL,
-               PERIOD_USEC, pulse_width, PWM_IR_FLAGS);
-   if (ret < 0) {
-      LOG_ERR("Error %d: failed to set pulse width\n", ret);
-      return;
-   }
 }
