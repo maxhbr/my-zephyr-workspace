@@ -23,8 +23,10 @@
 #define MIN_PERIOD_USEC	(USEC_PER_SEC / 64U)
 #define MAX_PERIOD_USEC	USEC_PER_SEC
 
-#define PERIOD_USEC	(USEC_PER_SEC / 40000U)
-#define PULSE_USEC	(PERIOD_USEC / 2)
+// 40kHz
+#define PERIOD_USEC (USEC_PER_SEC / 40000U)
+// pulses with approx 25% mark/space ratio
+#define PULSE_USEC (PERIOD_USEC / 4)
 
 class IrSony{
   const struct device *pwm = DEVICE_DT_GET(PWM_IR_CTLR);

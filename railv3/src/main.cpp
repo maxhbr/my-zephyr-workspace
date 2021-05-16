@@ -62,6 +62,16 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb,
 	printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
   irsony.shoot();
 }
+void init_button() {
+  	const struct device *button;
+  button = device_get_binding(SW0_GPIO_LABEL);
+  gpio_pin_configure(button, SW0_GPIO_PIN, SW0_GPIO_FLAGS);
+  gpio_pin_interrupt_configure(button,
+					   SW0_GPIO_PIN,
+					   GPIO_INT_EDGE_TO_ACTIVE);
+  gpio_init_callback(&button_cb_data, button_pressed, BIT(SW0_GPIO_PIN));
+	gpio_add_callback(button, &button_cb_data);
+}
 
 // ############################################################################
 // Main
@@ -70,15 +80,7 @@ void main(void) {
   start_stepper();
   LOG_INF("stepper = %p", &stepper);
 
-  button = device_get_binding(SW0_GPIO_LABEL);
-  gpio_pin_configure(button, SW0_GPIO_PIN, SW0_GPIO_FLAGS);
-  gpio_pin_interrupt_configure(button,
-					   SW0_GPIO_PIN,
-					   GPIO_INT_EDGE_TO_ACTIVE);
-  gpio_init_callback(&button_cb_data, button_pressed, BIT(SW0_GPIO_PIN));
-	gpio_add_callback(button, &button_cb_data)
-
-    k_sleep(K_MSEC(2000));
+  init_button();
 
   while (true) {
     lv_task_handler();
