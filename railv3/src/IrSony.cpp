@@ -17,9 +17,9 @@
 LOG_MODULE_REGISTER(irsony);
 
 // Remote control
-const int shutter_code = 0x2D;
-const int two_secs_code = 0x37;
-const int video_code = 0x48;
+const unsigned long shutter_code = 0x2D;
+const unsigned long two_secs_code = 0x37;
+const unsigned long video_code = 0x48;
 
 const int BASE = 635;
 const int ZERO_DURATION = BASE;
@@ -61,8 +61,8 @@ void IrSony::send_code(unsigned long code) {
      send_bit(code & ((unsigned long) 1<<bit));
   }
 }
-void IrSony::send_command(int command) {
-  int address = 0x1E3A;
+void IrSony::send_command(unsigned long command) {
+  unsigned long address = 0x1E3A;
   LOG_MODULE_DECLARE(irsony);
    unsigned long code = (unsigned long) address<<7 | command;
   LOG_INF("send command=0x%08x code=0x%08x", command, code);

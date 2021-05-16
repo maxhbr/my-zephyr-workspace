@@ -36,7 +36,7 @@ void send_pulse(int duration);
   void send_start();
   void send_bit(bool is_one);
   void send_code(unsigned long code);
-  void send_command(int command);
+  void send_command(unsigned long command);
 public:
   IrSony(); 
   void shoot();

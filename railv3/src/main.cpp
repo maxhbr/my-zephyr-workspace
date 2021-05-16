@@ -29,6 +29,9 @@ LOG_MODULE_REGISTER(rail);
 
 #include "StepperWithTarget.h"
 #include "IrSony.h"
+#include "Display.h"
+#include "View.h"
+
 
 #define SW0_NODE	DT_ALIAS(sw0)
 
@@ -73,6 +76,51 @@ void init_button() {
 	gpio_add_callback(button, &button_cb_data);
 }
 
+
+
+
+
+
+
+Display get_display() {
+  const struct device *display_dev =
+      device_get_binding(CONFIG_LVGL_DISPLAY_DEV_NAME);
+  __ASSERT(display_dev != NULL, "display device not found.");
+  Display display(display_dev);
+  return display;
+}
+
+Stepper get_stepper() {
+  Stepper stepper;
+  return stepper;
+}
+
+/* size of stack area used by each thread */
+#define STACKSIZE 8192
+/* scheduling priority used by each thread */
+#define PRIORITY 7
+
+K_THREAD_STACK_DEFINE(thread_controller_stack_area, STACKSIZE);
+static struct k_thread thread_controller_data;
+void thread_controller(void *_controller, void *dummy2, void *dummy3) {
+  ARG_UNUSED(dummy2);
+  ARG_UNUSED(dummy3);
+  Controller *controller = static_cast<Controller *>(_controller);
+  while (true) {
+    controller->work();
+    k_sleep(K_MSEC(0));
+  }
+}
+
+void start_controller_thread(Controller *controller) {
+  k_tid_t my_tid_controller = k_thread_create(
+      &thread_controller_data, thread_controller_stack_area,
+      K_THREAD_STACK_SIZEOF(thread_controller_stack_area), thread_controller,
+      controller, NULL, NULL, PRIORITY, 0, K_NO_WAIT);
+  k_thread_name_set(&thread_controller_data, "thread_controller");
+  k_thread_start(&thread_controller_data);
+}
+
 // ############################################################################
 // Main
 
@@ -82,6 +130,16 @@ void main(void) {
 
   init_button();
 
+  Display display = get_display();
+
+  Model model(&stepper);
+  Controller controller(&model);
+  View view(&model, &controller, &display);
+  LOG_INF("model = %p", &model);
+  LOG_INF("controller = %p", &controller);
+  LOG_INF("view = %p", &view);
+
+  // start_controller_thread(&controller);
   while (true) {
     lv_task_handler();
     k_sleep(K_MSEC(100));
