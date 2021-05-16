@@ -17,6 +17,15 @@
 	aliases {
 		pulse = &pulse_gpio;
         dir = &dir_gpio;
+		pwmir = &ir_pwm_led;
+	};
+
+	pwmleds {
+		compatible = "pwm-leds";
+		ir_pwm_led: ir_pwm_led {
+			pwms = <&pwm13 1 4 PWM_POLARITY_NORMAL>;
+			label = "IR LED - PWM12";
+		};
 	};
 };
 
@@ -55,3 +64,14 @@
 		status = "okay";
 	};
 };
+
+&timers13 {
+    status = "okay";
+
+    pwm13: pwm {
+        status = "okay";
+		st,prescaler = < 2 >;
+        pinctrl-0 = <&tim13_ch1_pf8>; /* D61 */
+    };
+};
+
