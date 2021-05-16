@@ -18,12 +18,12 @@ void Stepper::set_direction_towards(int target) {
     direction = DIR_RIGHT;
     dir.set(true);
     led0.set(true);
-    led2.set(false);
+    led1.set(false);
   } else {
     direction = DIR_LEFT;
     dir.set(false);
     led0.set(false);
-    led2.set(true);
+    led1.set(true);
   }
 }
 

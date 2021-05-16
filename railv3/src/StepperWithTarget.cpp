@@ -2,6 +2,15 @@
 
 void StepperWithTarget::start() { Stepper::start(); }
 void StepperWithTarget::pause() { Stepper::pause(); }
+void StepperWithTarget::wait_and_pause() {
+  LOG_MODULE_DECLARE(stepper);
+  LOG_INF("wait...");
+  while (! is_in_target_position()) {
+    k_sleep(K_MSEC(100));
+  }
+  Stepper::pause();
+  LOG_INF("...pause");
+}
 
 int StepperWithTarget::get_position() { return Stepper::get_position(); }
 

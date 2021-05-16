@@ -12,7 +12,6 @@
 
 #include <logging/log.h>
 
-#include "CppSemaphore.h"
 #include "GPIOs.h"
 
 #define LED0_NODE DT_ALIAS(led0)
@@ -23,10 +22,6 @@
 #define LED1_LABEL DT_GPIO_LABEL(LED1_NODE, gpios)
 #define LED1_PIN DT_GPIO_PIN(LED1_NODE, gpios)
 #define LED1_FLAGS DT_GPIO_FLAGS(LED1_NODE, gpios)
-#define LED2_NODE DT_ALIAS(led2)
-#define LED2_LABEL DT_GPIO_LABEL(LED2_NODE, gpios)
-#define LED2_PIN DT_GPIO_PIN(LED2_NODE, gpios)
-#define LED2_FLAGS DT_GPIO_FLAGS(LED2_NODE, gpios)
 
 #define PULSE_NODE DT_ALIAS(pulse)
 #define PULSE_LABEL DT_GPIO_LABEL(PULSE_NODE, gpios)
@@ -61,7 +56,6 @@ class Stepper {
 
   LED led0 = LED(LED0_LABEL, LED0_PIN, LED0_FLAGS);
   LED led1 = LED(LED1_LABEL, LED1_PIN, LED1_FLAGS);
-  LED led2 = LED(LED2_LABEL, LED2_PIN, LED2_FLAGS);
   PULSE pulse = PULSE(PULSE_LABEL, PULSE_PIN, PULSE_FLAGS);
   GPIO dir = GPIO(DIR_LABEL, DIR_PIN, DIR_FLAGS);
 

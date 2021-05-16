@@ -28,6 +28,7 @@ public:
 
   void start();
   void pause();
+  void wait_and_pause();
 
   int get_position();
 

@@ -28,6 +28,7 @@
 LOG_MODULE_REGISTER(rail);
 
 #include "StepperWithTarget.h"
+#include "IrSony.h"
 
 // ############################################################################
 // initialize Stepper
@@ -44,17 +45,19 @@ void start_stepper() {
 }
 
 // ############################################################################
+// initialize IrSony
+IrSony irsony;
+
+// ############################################################################
 // Main
 
 void main(void) {
   start_stepper();
-
   LOG_INF("stepper = %p", &stepper);
-  int target = stepper.go_relative(12800);
-  LOG_INF("new_target = %i", target);
 
   while (true) {
     lv_task_handler();
+    irsony.shoot();
     k_sleep(K_MSEC(100));
   }
 }
