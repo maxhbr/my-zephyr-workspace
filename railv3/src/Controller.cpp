@@ -3,7 +3,8 @@
 LOG_MODULE_REGISTER(controller);
 
 K_SEM_DEFINE(_work_in_progress_sem, 1, 1);
-Controller::Controller(Model *_model) : model{_model} {
+Controller::Controller(Model *_model, IrSony *_irsony)
+    : model{_model}, irsony{_irsony} {
   work_in_progress_sem = &_work_in_progress_sem;
 }
 

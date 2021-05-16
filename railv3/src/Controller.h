@@ -15,14 +15,16 @@
 
 #include <logging/log.h>
 
+#include "IrSony.h"
 #include "Model.h"
 
 class Controller {
   Model *model;
+  IrSony *irsony;
   struct k_sem *work_in_progress_sem;
 
 public:
-  Controller(Model *_model);
+  Controller(Model *_model, IrSony *_irsony);
   void work();
 
   void go(int dist);
