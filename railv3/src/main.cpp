@@ -40,10 +40,12 @@ LOG_MODULE_REGISTER(rail);
 StepperWithTarget stepper;
 
 void stepper_work_handler(struct k_work *work) {
+  ARG_UNUSED(work);
   stepper.step_towards_target();
 }
 K_WORK_DEFINE(stepper_work, stepper_work_handler);
 void stepper_expiry_function(struct k_timer *timer_id) {
+  ARG_UNUSED(timer_id);
   k_work_submit(&stepper_work);
 }
 K_TIMER_DEFINE(stepper_timer, stepper_expiry_function, NULL);
@@ -64,6 +66,10 @@ IrSony irsony;
 static struct gpio_callback button_cb_data;
 void button_pressed(const struct device *dev, struct gpio_callback *cb,
                     uint32_t pins) {
+  ARG_UNUSED(dev);
+  ARG_UNUSED(cb);
+  ARG_UNUSED(pins);
+
   printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
   irsony.shoot();
 }

@@ -18,10 +18,7 @@ void Display::init_styles() {
 }
 
 void Display::init_header(lv_obj_t *parent) {
-  header = lv_cont_create(parent, NULL);
-  lv_obj_set_size(header, LV_HOR_RES, 25);
-  lv_cont_set_fit(header, LV_FIT_TIGHT);
-  lv_cont_set_layout(header, LV_LAYOUT_COLUMN_MID);
+  header = add_container(parent, LV_HOR_RES, 25);
   lv_obj_align(header, NULL, LV_ALIGN_IN_TOP_MID, 0, 0);
 }
 
@@ -47,6 +44,15 @@ lv_obj_t *Display::make_tab(const char *title) {
   return lv_tabview_add_tab(tabview, title);
 }
 
+lv_obj_t *Display::add_container(lv_obj_t *parent,
+                              int width, int height) {
+  lv_obj_t *container = lv_cont_create(parent, NULL);
+  lv_obj_set_size(container, width, height);
+  lv_cont_set_fit(container, LV_FIT_TIGHT);
+  lv_cont_set_layout(container, LV_LAYOUT_COLUMN_MID);
+  return container;
+}
+
 lv_obj_t *Display::add_label(lv_obj_t *parent) {
   lv_obj_t *lbl = lv_label_create(parent, NULL);
   lv_obj_add_style(lbl, 0, &style_normal);
@@ -60,9 +66,9 @@ lv_obj_t *Display::add_panel(lv_obj_t *parent) {
 }
 
 lv_obj_t *Display::add_button(lv_obj_t *parent, const char *label_text,
-                              int width, int heigth) {
+                              int width, int height) {
   lv_obj_t *btn = lv_btn_create(parent, NULL);
-  lv_obj_set_height(btn, heigth);
+  lv_obj_set_height(btn, height);
   lv_obj_set_width(btn, width);
   lv_obj_add_style(btn, 0, &style_button);
   if (label_text != NULL) {

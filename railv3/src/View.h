@@ -32,11 +32,11 @@ private:
   lv_obj_t *pos_label = NULL;
   lv_obj_t *lower_label = NULL;
   lv_obj_t *upper_label = NULL;
+  lv_obj_t *plan_label = NULL;
 
   lv_obj_t *step_size_roller = NULL;
   int read_step_size_roller();
   lv_obj_t *step_number_roller = NULL;
-  int read_step_number_roller();
 
   // init functions
   void fill_move_panel(lv_obj_t *parent);

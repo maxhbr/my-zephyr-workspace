@@ -10,7 +10,7 @@ Model::Model(StepperWithTarget *_stepper) {
 void Model::go(int dist) {
   LOG_MODULE_DECLARE(model);
   int target_position = stepper->go_relative(dist);
-  LOG_INF("target: %i\n", target_position);
+  LOG_INF("target: %i", target_position);
 }
 
 void Model::set_target_position(int _target_position) {

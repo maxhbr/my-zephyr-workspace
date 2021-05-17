@@ -26,6 +26,7 @@ public:
 
   lv_obj_t *get_header();
   lv_obj_t *make_tab(const char *title);
+  lv_obj_t *add_container(lv_obj_t *parent, int width, int heigth);
   lv_obj_t *add_label(lv_obj_t *parent);
   lv_obj_t *add_panel(lv_obj_t *parent);
   lv_obj_t *add_button(lv_obj_t *parent, const char *label_text, int width,

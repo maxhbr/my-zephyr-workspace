@@ -17,7 +17,7 @@ cmake_minimum_required(VERSION 3.13.1)
 find_package(Zephyr REQUIRED HINTS $ENV{ZEPHYR_BASE})
 project(rail@h745zi)
 
-zephyr_library_compile_options(-lstdc++ -std=c++17 -Wall -Wextra -Wno-unused-variable -Wno-comment)
+zephyr_library_compile_options(-lstdc++ -std=c++17 -Wall -Wextra -Wno-missing-field-initializers -Wno-unused-variable -Wno-comment)
 
 
 FILE(GLOB app_sources src/*.cpp)

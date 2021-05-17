@@ -63,7 +63,7 @@ void IrSony::send_command(unsigned long command) {
   unsigned long address = 0x1E3A;
   LOG_MODULE_DECLARE(irsony);
   unsigned long code = (unsigned long)address << 7 | command;
-  LOG_INF("send command=0x%08x code=0x%08x", command, code);
+  LOG_INF("send command=0x%08lu code=0x%08lu", command, code);
   send_code(code);
   k_busy_wait(11000);
   send_code(code);

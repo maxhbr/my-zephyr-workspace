@@ -58,12 +58,12 @@ void Controller::prepare_stack(int step_number) {
     stop = lower_bound;
   }
 
-  LOG_INF("prepare_stack: %d -> %d, #=%d\n", start, stop, step_number);
+  LOG_INF("prepare_stack: %d -> %d, #=%d", start, stop, step_number);
 
   distance = stop - start;
   stack_step_jump = distance / step_number;
   if (stack_step_jump == 0) {
-    LOG_WRN("step_jump of 0\n");
+    LOG_WRN("step_jump of 0");
     return;
   }
   int i;
@@ -78,7 +78,7 @@ void Controller::prepare_stack(int step_number) {
 }
 
 void Controller::stop_stack() {
-  LOG_INF("stop_stack\n");
+  LOG_INF("stop_stack");
   model->set_step_number(0);
   model->set_stack_in_progress(false);
 }

@@ -16,7 +16,7 @@
 
 class Model {
   StepperWithTarget *stepper;
-  int upper_bound = 0;
+  int upper_bound = 12800;
   int lower_bound = 0;
 
   int step_number = 0;
