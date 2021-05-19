@@ -23,8 +23,8 @@
 	pwmleds {
 		compatible = "pwm-leds";
 		ir_pwm_led: ir_pwm_led {
-			pwms = <&pwm13 1 4 PWM_POLARITY_NORMAL>;
-			label = "IR LED - PWM12";
+			pwms = <&pwm5 4 4 PWM_POLARITY_NORMAL>;
+			label = "IR LED - A0";
 		};
 	};
 };
@@ -65,13 +65,13 @@
 	};
 };
 
-&timers13 {
+&timers5 {
     status = "okay";
 
-    pwm13: pwm {
+    pwm5: pwm {
         status = "okay";
 		st,prescaler = < 2 >;
-        pinctrl-0 = <&tim13_ch1_pf8>; /* D61 */
+        pinctrl-0 = <&tim5_ch4_pa3>; /* A0 */
     };
 };
 
