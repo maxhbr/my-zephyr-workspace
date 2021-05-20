@@ -7,6 +7,13 @@ Model::Model(StepperWithTarget *_stepper) {
   stepps = (int *)malloc(sizeof(int) * 1000);
 }
 
+void Model::log_state() {
+  stepper->log_state();
+  LOG_INF("bounds=(%i, %i)", lower_bound, upper_bound);
+  LOG_INF("step_number=%i, cur_step_index=%i, stack_in_progress=%d",
+          step_number, cur_step_index, stack_in_progress);
+};
+
 void Model::go(int dist) {
   LOG_MODULE_DECLARE(model);
   int target_position = stepper->go_relative(dist);
@@ -37,6 +44,9 @@ std::optional<int> Model::get_next_step_and_increment() {
 }
 void Model::set_stack_in_progress(bool _stack_in_progress) {
   stack_in_progress = _stack_in_progress;
+  if (!stack_in_progress) {
+    cur_step_index = 0;
+  }
 }
 bool Model::is_stack_in_progress() { return stack_in_progress; }
 

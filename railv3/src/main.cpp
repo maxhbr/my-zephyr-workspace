@@ -28,6 +28,7 @@
 LOG_MODULE_REGISTER(rail);
 
 #include "Display.h"
+#include "GyroWaiter.h"
 #include "IrSony.h"
 #include "StepperWithTarget.h"
 #include "View.h"
@@ -59,6 +60,10 @@ void start_stepper() {
 IrSony irsony;
 
 // ############################################################################
+// initialize GyroWaiter
+GyroWaiter gyro_waiter;
+
+// ############################################################################
 // initialize Button
 #define SW0_GPIO_LABEL DT_GPIO_LABEL(SW0_NODE, gpios)
 #define SW0_GPIO_PIN DT_GPIO_PIN(SW0_NODE, gpios)
@@ -71,7 +76,6 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb,
   ARG_UNUSED(pins);
 
   printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
-  irsony.shoot();
 }
 void init_button() {
   const struct device *button;
@@ -94,35 +98,6 @@ Display get_display() {
 }
 
 // ############################################################################
-// ...
-
-/* size of stack area used by each thread */
-#define STACKSIZE 8192
-/* scheduling priority used by each thread */
-#define PRIORITY 7
-
-K_THREAD_STACK_DEFINE(thread_controller_stack_area, STACKSIZE);
-static struct k_thread thread_controller_data;
-void thread_controller(void *_controller, void *dummy2, void *dummy3) {
-  ARG_UNUSED(dummy2);
-  ARG_UNUSED(dummy3);
-  Controller *controller = static_cast<Controller *>(_controller);
-  while (true) {
-    controller->work();
-    k_sleep(K_MSEC(0));
-  }
-}
-
-void start_controller_thread(Controller *controller) {
-  k_tid_t my_tid_controller = k_thread_create(
-      &thread_controller_data, thread_controller_stack_area,
-      K_THREAD_STACK_SIZEOF(thread_controller_stack_area), thread_controller,
-      controller, NULL, NULL, PRIORITY, 0, K_NO_WAIT);
-  k_thread_name_set(&thread_controller_data, "thread_controller");
-  k_thread_start(&thread_controller_data);
-}
-
-// ############################################################################
 // Main
 
 void main(void) {
@@ -134,15 +109,25 @@ void main(void) {
   Display display = get_display();
 
   Model model(&stepper);
-  Controller controller(&model, &irsony);
+  model.set_upper_bound(12800);
+  model.set_step_number(300);
+
+  Controller controller(&model, &irsony, &gyro_waiter);
   View view(&model, &controller, &display);
   LOG_INF("model = %p", &model);
+  model.log_state();
   LOG_INF("controller = %p", &controller);
   LOG_INF("view = %p", &view);
 
-  // start_controller_thread(&controller);
   while (true) {
-    lv_task_handler();
-    k_sleep(K_MSEC(100));
+    for (int i = 0; i < 10; i++) {
+      view.update();
+      k_sleep(K_MSEC(50));
+      lv_task_handler();
+      k_sleep(K_MSEC(50));
+      controller.work();
+      k_sleep(K_MSEC(50));
+    }
+    model.log_state();
   }
 }

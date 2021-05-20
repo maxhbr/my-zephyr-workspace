@@ -26,6 +26,8 @@ class StepperWithTarget : private Stepper {
 public:
   StepperWithTarget() : Stepper(){};
 
+  void log_state();
+
   void start();
   void pause();
   void wait_and_pause();

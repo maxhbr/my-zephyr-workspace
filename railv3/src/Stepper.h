@@ -63,6 +63,9 @@ class Stepper {
 
 public:
   Stepper();
+
+  void log_state();
+
   void start();
   void pause();
   bool step_towards(int target);

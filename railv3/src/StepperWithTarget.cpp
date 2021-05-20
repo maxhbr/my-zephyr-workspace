@@ -1,5 +1,11 @@
 #include "StepperWithTarget.h"
 
+void StepperWithTarget::log_state() {
+  LOG_MODULE_DECLARE(stepper);
+  Stepper::log_state();
+  LOG_INF("target_position: %i", target_position);
+};
+
 void StepperWithTarget::start() { Stepper::start(); }
 void StepperWithTarget::pause() { Stepper::pause(); }
 void StepperWithTarget::wait_and_pause() {

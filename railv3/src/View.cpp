@@ -8,7 +8,8 @@ LOG_MODULE_REGISTER(view);
 #define ACTION_GO_TO_LOWER 'L'
 #define ACTION_SET_UPPER 'u'
 #define ACTION_GO_TO_UPPER 'U'
-#define ACTION_PREPARE_STACK 's'
+#define ACTION_SET_STEP_NUMBER '#'
+#define ACTION_START_STACK 's'
 #define ACTION_STOP_STACK 'S'
 
 static View *static_view_pointer = NULL;
@@ -23,17 +24,15 @@ View::View(Model *_model, Controller *_controller, Display *_display)
 
   lv_obj_t *move_tab = display->make_tab("move");
   fill_move_panel(move_tab);
-  lv_obj_t *plan_tab = display->make_tab("plan");
-  fill_plan_panel(plan_tab);
-  lv_obj_t *shoot_tab = display->make_tab("shoot");
-  fill_shoot_panel(shoot_tab);
+  lv_obj_t *stack_tab = display->make_tab("stack");
+  fill_stack_panel(stack_tab);
 
-  lv_task_t *task = lv_task_create(
-      [](lv_task_t *task) {
-        View *view = static_cast<View *>(task->user_data);
-        view->update();
-      },
-      100, LV_TASK_PRIO_MID, this);
+  // lv_task_t *task_render = lv_task_create(
+  //     [](lv_task_t *task) {
+  //       View *view = static_cast<View *>(task->user_data);
+  //       view->update();
+  //     },
+  //     100, LV_TASK_PRIO_MID, this);
 };
 
 int View::read_step_size_roller() {
@@ -47,7 +46,8 @@ void View::event_cb(char action_type, lv_obj_t *obj, lv_event_t event) {
   char str[12] = {0};
 
   if (!(event == LV_EVENT_PRESSED || event == LV_EVENT_LONG_PRESSED ||
-        event == LV_EVENT_LONG_PRESSED_REPEAT || event == LV_EVENT_VALUE_CHANGED)) {
+        event == LV_EVENT_LONG_PRESSED_REPEAT ||
+        event == LV_EVENT_VALUE_CHANGED)) {
     return;
   }
 
@@ -55,7 +55,7 @@ void View::event_cb(char action_type, lv_obj_t *obj, lv_event_t event) {
   LOG_DBG("event_cb: txt=%s, action_type=%c", btn_text, action_type);
 
   switch (action_type) {
-  case ACTION_PREPARE_STACK: {
+  case ACTION_SET_STEP_NUMBER: {
     if (!(event == LV_EVENT_VALUE_CHANGED)) {
       return;
     }
@@ -67,8 +67,15 @@ void View::event_cb(char action_type, lv_obj_t *obj, lv_event_t event) {
       step_number = 10;
     }
 
-    LOG_INF("prepare_stack: %d", step_number);
-    controller->prepare_stack(step_number);
+    LOG_INF("set_step_number: %d", step_number);
+    controller->set_step_number(step_number);
+    break;
+  }
+  case ACTION_START_STACK: {
+    if (!(event == LV_EVENT_PRESSED)) {
+      return;
+    }
+    controller->start_stack();
     break;
   }
   case ACTION_STOP_STACK: {
@@ -91,7 +98,7 @@ void View::event_cb(char action_type, lv_obj_t *obj, lv_event_t event) {
     break;
   }
   case ACTION_SET_LOWER: {
-    if (!(event == LV_EVENT_LONG_PRESSED)) {
+    if (!(event == LV_EVENT_PRESSED)) {
       return;
     }
     controller->set_new_lower_bound();
@@ -105,7 +112,7 @@ void View::event_cb(char action_type, lv_obj_t *obj, lv_event_t event) {
     break;
   }
   case ACTION_SET_UPPER: {
-    if (!(event == LV_EVENT_LONG_PRESSED)) {
+    if (!(event == LV_EVENT_PRESSED)) {
       return;
     }
     controller->set_new_upper_bound();
@@ -182,7 +189,7 @@ void View::fill_move_panel(lv_obj_t *parent) {
   // // lv_obj_set_width(slider, LV_PCT(95))
 }
 
-void View::fill_plan_panel(lv_obj_t *parent) {
+void View::fill_stack_panel(lv_obj_t *parent) {
   step_number_roller = display->add_roller(parent, "10\n"
                                                    "20\n"
                                                    "30\n"
@@ -195,25 +202,19 @@ void View::fill_plan_panel(lv_obj_t *parent) {
   lv_obj_align(step_number_roller, NULL, LV_ALIGN_IN_LEFT_MID, 20, 0);
   lv_roller_set_selected(step_number_roller, 6, LV_ANIM_OFF);
   lv_obj_set_event_cb(step_number_roller, [](lv_obj_t *btn, lv_event_t event) {
-    static_view_pointer->event_cb(ACTION_PREPARE_STACK, btn, event);
+    static_view_pointer->event_cb(ACTION_SET_STEP_NUMBER, btn, event);
   });
 
-  lv_obj_t *plan_container = display->add_container(parent, LV_HOR_RES / 2, 100);
-  lv_obj_align(plan_container, NULL, LV_ALIGN_IN_RIGHT_MID, 0, 0);
+  lv_obj_t *plan_container =
+      display->add_container(parent, LV_HOR_RES / 2, 100);
+  lv_obj_align(plan_container, NULL, LV_ALIGN_IN_TOP_RIGHT, 0, 0);
   plan_label = display->add_label(plan_container);
-}
 
-void View::fill_shoot_panel(lv_obj_t *parent) {
-  lv_obj_t *autostart_cb = lv_checkbox_create(parent, NULL);
-  lv_checkbox_set_text(autostart_cb, "autostart");
-  lv_obj_align(autostart_cb, NULL, LV_ALIGN_IN_BOTTOM_MID, 0, 0);
-  lv_checkbox_set_checked(autostart_cb, true);
-
-  lv_obj_t *a_step_button = display->add_button(parent, "1step", 50, 50);
-  lv_obj_align(a_step_button, NULL, LV_ALIGN_IN_TOP_RIGHT, -20, 20);
-
-  lv_obj_t *start_button = display->add_button(parent, "start", 50, 50);
-  lv_obj_align(start_button, NULL, LV_ALIGN_IN_RIGHT_MID, -20, 0);
+  lv_obj_t *start_button = display->add_button(parent, "start", 70, 70);
+  lv_obj_align(start_button, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -70, -20);
+  lv_obj_set_event_cb(start_button, [](lv_obj_t *btn, lv_event_t event) {
+    static_view_pointer->event_cb(ACTION_START_STACK, btn, event);
+  });
 
   lv_obj_t *stop_button = display->add_button(parent, "stop", 50, 50);
   lv_obj_align(stop_button, NULL, LV_ALIGN_IN_BOTTOM_RIGHT, -20, -20);
@@ -223,34 +224,46 @@ void View::fill_shoot_panel(lv_obj_t *parent) {
 }
 
 void View::update() {
+  char str[40] = {0};
   LOG_MODULE_DECLARE(view);
 
-  char str[40] = {0};
+  int cur_position = model->get_cur_position();
+  int target_position = model->get_target_position();
+  bool is_in_target_position = cur_position == target_position;
   if (pos_label != NULL) {
-    int cur_position = model->get_cur_position();
-    int target_position = model->get_target_position();
-    if (cur_position == target_position) {
-      sprintf(str, "@%d", cur_position);
+    if (is_in_target_position && !model->is_stack_in_progress()) {
+      display->set_header_visible(false);
     } else {
-      if (cur_position < target_position) {
-        sprintf(str, "%d > %d", cur_position, target_position);
+      display->set_header_visible(true);
+      if (is_in_target_position) {
+        sprintf(str, "@%d", cur_position);
       } else {
-        sprintf(str, "%d < %d", target_position, cur_position);
+        if (cur_position < target_position) {
+          sprintf(str, "%d > %d", cur_position, target_position);
+        } else {
+          sprintf(str, "%d < %d", target_position, cur_position);
+        }
       }
+      if (model->is_stack_in_progress()) {
+        char str2[45] = {0};
+        strcpy(str2, str);
+        sprintf(str, "%s | %d of %d", str2, model->get_cur_step_index(),
+                model->get_step_number());
+      }
+      lv_label_set_text(pos_label, str);
     }
-    if (model->is_stack_in_progress()) {
-      char str2[45] = {0};
-      strcpy(str2, str);
-      sprintf(str, "%s | %d of %d", str2, model->get_cur_step_index(),
-              model->get_step_number());
-    }
-    lv_label_set_text(pos_label, str);
   } else {
     LOG_WRN("cur_label not yet initialized");
     return;
   }
 
-// TODO: is that inefficient?
+  if (plan_label != NULL && model->get_step_number() > 0) {
+    sprintf(str, "#=%d\nds=%d", model->get_step_number(),
+            model->get_step_jump_size());
+    lv_label_set_text(plan_label, str);
+  }
+
+  // TODO: is that inefficient?
   if (lower_label != NULL) {
     sprintf(str, "%d <-", model->get_lower_bound());
     lv_label_set_text(lower_label, str);

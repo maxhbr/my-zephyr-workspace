@@ -44,8 +44,7 @@ lv_obj_t *Display::make_tab(const char *title) {
   return lv_tabview_add_tab(tabview, title);
 }
 
-lv_obj_t *Display::add_container(lv_obj_t *parent,
-                              int width, int height) {
+lv_obj_t *Display::add_container(lv_obj_t *parent, int width, int height) {
   lv_obj_t *container = lv_cont_create(parent, NULL);
   lv_obj_set_size(container, width, height);
   lv_cont_set_fit(container, LV_FIT_TIGHT);
@@ -85,4 +84,8 @@ lv_obj_t *Display::add_roller(lv_obj_t *parent, const char *options) {
 
   lv_roller_set_visible_row_count(roller, 4);
   return roller;
+}
+
+void Display::set_header_visible(bool is_visible) {
+  lv_obj_set_hidden(header, !is_visible);
 }

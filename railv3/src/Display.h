@@ -32,6 +32,7 @@ public:
   lv_obj_t *add_button(lv_obj_t *parent, const char *label_text, int width,
                        int heigth);
   lv_obj_t *add_roller(lv_obj_t *parent, const char *options);
+  void set_header_visible(bool is_visible);
 };
 
 #endif // __DISPLAY_H_

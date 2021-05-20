@@ -40,8 +40,7 @@ private:
 
   // init functions
   void fill_move_panel(lv_obj_t *parent);
-  void fill_plan_panel(lv_obj_t *parent);
-  void fill_shoot_panel(lv_obj_t *parent);
+  void fill_stack_panel(lv_obj_t *parent);
 
 public:
   View(Model *_model, Controller *_controller, Display *_display);

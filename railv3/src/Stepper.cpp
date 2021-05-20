@@ -6,6 +6,11 @@ LOG_MODULE_REGISTER(stepper);
 K_SEM_DEFINE(_stepper_sem, 0, 1);
 Stepper::Stepper() { stepper_sem = &_stepper_sem; }
 
+void Stepper::log_state() {
+  LOG_MODULE_DECLARE(stepper);
+  LOG_INF("position: %i", position);
+};
+
 void Stepper::start() { k_sem_give(stepper_sem); }
 
 void Stepper::pause() { k_sem_take(stepper_sem, K_FOREVER); }

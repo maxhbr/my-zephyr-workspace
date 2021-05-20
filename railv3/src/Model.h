@@ -26,6 +26,9 @@ class Model {
 
 public:
   Model(StepperWithTarget *_stepper);
+
+  void log_state();
+
   void go(int dist);
 
   void set_target_position(int _target_position);
@@ -37,6 +40,13 @@ public:
 
   void set_step_number(int _step_number);
   int get_step_number() { return step_number; };
+  int get_step_jump_size() {
+    if (step_number > 1) {
+      return stepps[1] - stepps[0];
+    } else {
+      return 0;
+    }
+  };
   int get_cur_step_index() { return cur_step_index; };
   void set_step_position(int index, int pos);
   std::optional<int> get_next_step_and_increment();
