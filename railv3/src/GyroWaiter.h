@@ -32,8 +32,13 @@ class GyroWaiter {
   int bail_count = 400;
   int sleep_msec = 50;
 
+  double offset_0 = 0;
+  double offset_1 = 0;
+  double offset_2 = 0;
+
 public:
   GyroWaiter(){};
+  void init();
   int wait();
 };
 #endif /* GYRO_WAITER_H */

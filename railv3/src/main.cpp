@@ -76,6 +76,7 @@ void button_pressed(const struct device *dev, struct gpio_callback *cb,
   ARG_UNUSED(pins);
 
   printk("Button pressed at %" PRIu32 "\n", k_cycle_get_32());
+  gyro_waiter.wait();
 }
 void init_button() {
   const struct device *button;
@@ -101,7 +102,9 @@ Display get_display() {
 // Main
 
 void main(void) {
-  start_stepper();
+  gyro_waiter.init();
+
+
   LOG_INF("stepper = %p", &stepper);
 
   init_button();
@@ -111,23 +114,21 @@ void main(void) {
   Model model(&stepper);
   model.set_upper_bound(12800);
   model.set_step_number(300);
-
-  Controller controller(&model, &irsony, &gyro_waiter);
-  View view(&model, &controller, &display);
   LOG_INF("model = %p", &model);
   model.log_state();
+
+  Controller controller(&model, &irsony, &gyro_waiter);
+  controller.prepare_stack();
   LOG_INF("controller = %p", &controller);
+
+  View view(&model, &controller, &display);
   LOG_INF("view = %p", &view);
 
+  start_stepper();
   while (true) {
-    for (int i = 0; i < 10; i++) {
-      view.update();
-      k_sleep(K_MSEC(50));
-      lv_task_handler();
-      k_sleep(K_MSEC(50));
-      controller.work();
-      k_sleep(K_MSEC(50));
-    }
-    model.log_state();
+    view.update();
+    lv_task_handler();
+    controller.work();
+    k_sleep(K_MSEC(100));
   }
 }

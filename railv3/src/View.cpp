@@ -32,7 +32,7 @@ View::View(Model *_model, Controller *_controller, Display *_display)
   //       View *view = static_cast<View *>(task->user_data);
   //       view->update();
   //     },
-  //     100, LV_TASK_PRIO_MID, this);
+  //     100, LV_TASK_PRIO_LOW, this);
 };
 
 int View::read_step_size_roller() {

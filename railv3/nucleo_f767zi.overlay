@@ -44,7 +44,7 @@
 		reg = <0x68>;
 		status = "okay";
 		label = "MPU6050";
-		int-gpios = <&arduino_header 2 GPIO_ACTIVE_HIGH>; /* D7 */
+		int-gpios = <&arduino_header 10 GPIO_ACTIVE_HIGH>; /* D4 */
 	};
 };
 
@@ -54,16 +54,16 @@
 	};
 };
 
-&arduino_serial {
-	status = "okay";
-	current-speed = <115200>;
-
-	esp8266 {
-		compatible = "espressif,esp";
-		label = "esp8266";
-		status = "okay";
-	};
-};
+// &arduino_serial {
+// 	status = "okay";
+// 	current-speed = <115200>;
+// 
+// 	esp8266 {
+// 		compatible = "espressif,esp";
+// 		label = "esp8266";
+// 		status = "okay";
+// 	};
+// };
 
 &timers5 {
     status = "okay";
