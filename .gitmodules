@@ -28,3 +28,6 @@
 [submodule "scratchpad/makerdiary-nrf52840-mdk-usb-dongle"]
 	path = scratchpad/makerdiary-nrf52840-mdk-usb-dongle
 	url = https://github.com/makerdiary/nrf52840-mdk-usb-dongle
+[submodule "docker-image"]
+	path = docker-image
+	url = https://github.com/zephyrproject-rtos/docker-image
